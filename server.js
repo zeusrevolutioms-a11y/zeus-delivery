@@ -9,12 +9,43 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static('public')); // frontend
+app.use(express.static('public'));
 
-// 📦 memória (depois vamos trocar por banco)
+// 📦 "banco fake" (depois vira Mongo/Postgres)
 let motoboys = {};
+let usuarios = {};
 
-// 📍 receber localização
+// ================================
+// 🧑‍💻 CADASTRO
+// ================================
+app.post('/register', (req, res) => {
+    const { id, senha } = req.body;
+
+    if (usuarios[id]) {
+        return res.send({ error: "ID já existe" });
+    }
+
+    usuarios[id] = { senha };
+
+    res.send({ status: "ok" });
+});
+
+// ================================
+// 🔐 LOGIN
+// ================================
+app.post('/login', (req, res) => {
+    const { id, senha } = req.body;
+
+    if (!usuarios[id] || usuarios[id].senha !== senha) {
+        return res.send({ error: "Login inválido" });
+    }
+
+    res.send({ status: "ok" });
+});
+
+// ================================
+// 📍 LOCALIZAÇÃO
+// ================================
 app.post('/location', (req, res) => {
     const { id, lat, lng } = req.body;
 
@@ -27,17 +58,30 @@ app.post('/location', (req, res) => {
     res.send({ status: 'ok' });
 });
 
-// 📡 listar motoboys
+// ================================
+// 📡 LISTAR + STATUS ONLINE
+// ================================
 app.get('/motoboys', (req, res) => {
-    res.send(motoboys);
+
+    const agora = Date.now();
+
+    let resposta = {};
+
+    for (let id in motoboys) {
+        const m = motoboys[id];
+
+        const online = (agora - m.updated) < 10000; // 10s
+
+        resposta[id] = {
+            ...m,
+            online
+        };
+    }
+
+    res.send(resposta);
 });
 
-// ❤️ status servidor
-app.get('/', (req, res) => {
-    res.send("ROTA SPEED ONLINE 🚀");
-});
-
-// ⚠️ render
+// ================================
 app.listen(process.env.PORT || 3000, () => {
     console.log('🔥 SERVER rodando');
 });
