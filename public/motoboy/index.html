@@ -107,6 +107,11 @@
 
 <script>
 
+// 🔥 AQUI É A ÚNICA ADAPTAÇÃO PRO MYSQL
+const API_URL = window.location.origin; 
+// depois você pode trocar pra:
+// const API_URL = "https://seusite.com";
+
 let watchId = null;
 
 // 🔁 AUTO LOGIN + LOADING
@@ -136,7 +141,7 @@ async function login(){
         return;
     }
 
-    const res = await fetch('/login',{
+    const res = await fetch(API_URL + '/login',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ id, senha })
@@ -167,7 +172,7 @@ async function register(){
         return;
     }
 
-    const res = await fetch('/register',{
+    const res = await fetch(API_URL + '/register',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({ id, senha })
@@ -194,7 +199,7 @@ function startTracking(id){
 
     watchId = navigator.geolocation.watchPosition((pos)=>{
 
-        fetch('/location',{
+        fetch(API_URL + '/location',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
