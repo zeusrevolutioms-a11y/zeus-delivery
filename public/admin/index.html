@@ -58,7 +58,7 @@ const map = L.map('map').setView([-20.8113, -49.3758], 13);
 // 🌍 mapa
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// 🏍️ ícone
+// 🏍️ ícone (SEU ORIGINAL MANTIDO)
 const motoIcon = L.icon({
     iconUrl: 'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png?ex=69ce95e1&is=69cd4461&hm=663dcfd59780f33b4bb8014562223687ca1826710168102d87457a09dd2b704a&=&format=webp&quality=lossless&width=814&height=543',
     iconSize: [100, 100]
@@ -93,7 +93,7 @@ async function getEndereco(lat, lng) {
 // 🔄 atualizar
 setInterval(async () => {
 
-    const res = await fetch('/motoboys'); // 👈 corrigido
+    const res = await fetch('/motoboys');
     const data = await res.json();
 
     dadosAtuais = data;
@@ -101,26 +101,45 @@ setInterval(async () => {
     let listaHTML = "";
 
     for (let id in data) {
-        const { lat, lng } = data[id];
 
-        listaHTML += `<div class="item" onclick="focar('${id}')">🏍️ Motoboy ${id}</div>`;
+        const { lat, lng, online } = data[id];
 
+        // 🔥 LISTA COM STATUS
+        listaHTML += `
+        <div class="item" onclick="focar('${id}')">
+            🏍️ Motoboy ${id} ${online ? "🟢" : "🔴"}
+        </div>`;
+
+        // ============================
+        // NOVO MARKER
+        // ============================
         if (!markers[id]) {
 
             const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
 
             const endereco = await getEndereco(lat, lng);
 
-           marker.bindPopup(`
-🏍️ Motoboy: ${id} <br>
-📍 ${endereco} <br>
-${data[id].online ? "🟢 ONLINE" : "🔴 OFFLINE"}
-`);
+            marker.bindPopup(`
+                🏍️ Motoboy: ${id} <br>
+                📍 ${endereco} <br>
+                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
+            `);
 
             markers[id] = marker;
 
         } else {
+
+            // 🔥 atualiza posição
             markers[id].setLatLng([lat, lng]);
+
+            // 🔥 ATUALIZA POPUP (IMPORTANTE)
+            const endereco = await getEndereco(lat, lng);
+
+            markers[id].setPopupContent(`
+                🏍️ Motoboy: ${id} <br>
+                📍 ${endereco} <br>
+                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
+            `);
         }
     }
 
