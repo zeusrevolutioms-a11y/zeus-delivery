@@ -1,9 +1,10 @@
 // ================================
-// 🚀 ROTA SPEED SERVER
+// 🚀 ROTA SPEED SERVER COM BANCO REAL
 // ================================
 
 const express = require('express');
 const cors = require('cors');
+const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
 
@@ -11,9 +12,27 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
-// 📦 "banco fake" (depois vira Mongo/Postgres)
-let motoboys = {};
-let usuarios = {};
+// ================================
+// 🧠 BANCO SQLITE
+// ================================
+const db = new sqlite3.Database('./database.db');
+
+// criar tabelas
+db.run(`
+CREATE TABLE IF NOT EXISTS usuarios (
+    id TEXT PRIMARY KEY,
+    senha TEXT
+)
+`);
+
+db.run(`
+CREATE TABLE IF NOT EXISTS motoboys (
+    id TEXT PRIMARY KEY,
+    lat REAL,
+    lng REAL,
+    updated INTEGER
+)
+`);
 
 // ================================
 // 🧑‍💻 CADASTRO
@@ -21,13 +40,15 @@ let usuarios = {};
 app.post('/register', (req, res) => {
     const { id, senha } = req.body;
 
-    if (usuarios[id]) {
-        return res.send({ error: "ID já existe" });
-    }
+    db.get("SELECT * FROM usuarios WHERE id = ?", [id], (err, row) => {
+        if (row) {
+            return res.send({ error: "ID já existe" });
+        }
 
-    usuarios[id] = { senha };
+        db.run("INSERT INTO usuarios (id, senha) VALUES (?, ?)", [id, senha]);
 
-    res.send({ status: "ok" });
+        res.send({ status: "ok" });
+    });
 });
 
 // ================================
@@ -36,11 +57,13 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
     const { id, senha } = req.body;
 
-    if (!usuarios[id] || usuarios[id].senha !== senha) {
-        return res.send({ error: "Login inválido" });
-    }
+    db.get("SELECT * FROM usuarios WHERE id = ?", [id], (err, user) => {
+        if (!user || user.senha !== senha) {
+            return res.send({ error: "Login inválido" });
+        }
 
-    res.send({ status: "ok" });
+        res.send({ status: "ok" });
+    });
 });
 
 // ================================
@@ -49,39 +72,43 @@ app.post('/login', (req, res) => {
 app.post('/location', (req, res) => {
     const { id, lat, lng } = req.body;
 
-    motoboys[id] = {
-        lat,
-        lng,
-        updated: Date.now()
-    };
+    db.run(`
+        INSERT INTO motoboys (id, lat, lng, updated)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+        lat=excluded.lat,
+        lng=excluded.lng,
+        updated=excluded.updated
+    `, [id, lat, lng, Date.now()]);
 
     res.send({ status: 'ok' });
 });
 
 // ================================
-// 📡 LISTAR + STATUS ONLINE
+// 📡 LISTAR + ONLINE/OFFLINE
 // ================================
 app.get('/motoboys', (req, res) => {
 
-    const agora = Date.now();
+    db.all("SELECT * FROM motoboys", [], (err, rows) => {
 
-    let resposta = {};
+        const agora = Date.now();
+        let resposta = {};
 
-    for (let id in motoboys) {
-        const m = motoboys[id];
+        rows.forEach(m => {
+            const online = (agora - m.updated) < 10000;
 
-        const online = (agora - m.updated) < 10000; // 10s
+            resposta[m.id] = {
+                lat: m.lat,
+                lng: m.lng,
+                online
+            };
+        });
 
-        resposta[id] = {
-            ...m,
-            online
-        };
-    }
-
-    res.send(resposta);
+        res.send(resposta);
+    });
 });
 
 // ================================
 app.listen(process.env.PORT || 3000, () => {
-    console.log('🔥 SERVER rodando');
+    console.log('🔥 SERVER rodando com banco REAL');
 });
