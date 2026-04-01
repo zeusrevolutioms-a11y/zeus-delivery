@@ -1,168 +1,139 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ROTA SPEED</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
-<style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:linear-gradient(135deg,#0f172a,#1e293b);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    color:white;
-}
+    <style>
+        body { font-family: Arial; }
+        #map { height: 500px; }
 
-.card{
-    background:#111827;
-    padding:30px;
-    border-radius:15px;
-    width:90%;
-    max-width:350px;
-    text-align:center;
-}
+        #topbar {
+            padding: 10px;
+            background: #111;
+            color: white;
+        }
 
-input{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:none;
-    margin-bottom:10px;
-}
+        input {
+            padding: 5px;
+            margin-right: 5px;
+        }
 
-button{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:10px;
-    background:#22c55e;
-    color:white;
-    font-weight:bold;
-    margin-top:5px;
-}
+        button {
+            padding: 6px;
+            cursor: pointer;
+        }
 
-.link{
-    margin-top:10px;
-    font-size:13px;
-    color:#9ca3af;
-    cursor:pointer;
-}
-</style>
+        #list {
+            margin-top: 10px;
+        }
+
+        .item {
+            background: #eee;
+            padding: 5px;
+            margin: 3px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="card">
-
-<h1>ROTA SPEED</h1>
-
-<div id="loginBox">
-<input id="id" placeholder="ID">
-<input id="senha" type="password" placeholder="Senha">
-<button onclick="login()">ENTRAR</button>
-
-<div class="link" onclick="showRegister()">Criar conta</div>
+<div id="topbar">
+    🔎 Buscar motoboy:
+    <input id="search" placeholder="ID">
+    <button onclick="buscar()">Buscar</button>
 </div>
 
-<div id="registerBox" style="display:none">
-<input id="rid" placeholder="Novo ID">
-<input id="rsenha" type="password" placeholder="Senha">
-<button onclick="register()">CADASTRAR</button>
+<div id="map"></div>
 
-<div class="link" onclick="showLogin()">Voltar</div>
-</div>
+<div id="list"></div>
 
-<div id="status"></div>
-
-</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-let watchId = null;
+// 📍 Rio Preto
+const map = L.map('map').setView([-20.8113, -49.3758], 13);
 
-// LOGIN
-async function login(){
+// 🌍 mapa
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    const id = document.getElementById("id").value;
-    const senha = document.getElementById("senha").value;
+// 🏍️ ícone
+const motoIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+    iconSize: [40, 40]
+});
 
-    const res = await fetch('/login',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({id,senha})
-    });
+let markers = {};
+let dadosAtuais = {};
 
+// 🔎 buscar motoboy
+function buscar() {
+    const id = document.getElementById("search").value;
+
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
+    } else {
+        alert("Motoboy não encontrado");
+    }
+}
+
+// 📍 endereço
+async function getEndereco(lat, lng) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        return data.display_name;
+    } catch {
+        return "Endereço não encontrado";
+    }
+}
+
+// 🔄 atualizar
+setInterval(async () => {
+
+    const res = await fetch('/motoboys'); // 👈 corrigido
     const data = await res.json();
 
-    if(data.error){
-        alert(data.error);
-        return;
+    dadosAtuais = data;
+
+    let listaHTML = "";
+
+    for (let id in data) {
+        const { lat, lng } = data[id];
+
+        listaHTML += `<div class="item" onclick="focar('${id}')">🏍️ Motoboy ${id}</div>`;
+
+        if (!markers[id]) {
+
+            const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
+
+            const endereco = await getEndereco(lat, lng);
+
+           marker.bindPopup(`
+🏍️ Motoboy: ${id} <br>
+📍 ${endereco} <br>
+${data[id].online ? "🟢 ONLINE" : "🔴 OFFLINE"}
+`);
+
+            markers[id] = marker;
+
+        } else {
+            markers[id].setLatLng([lat, lng]);
+        }
     }
 
-    localStorage.setItem("id", id);
+    document.getElementById("list").innerHTML = listaHTML;
 
-    iniciarGPS(id);
-}
+}, 3000);
 
-// CADASTRO
-async function register(){
-
-    const id = document.getElementById("rid").value;
-    const senha = document.getElementById("rsenha").value;
-
-    const res = await fetch('/register',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({id,senha})
-    });
-
-    const data = await res.json();
-
-    if(data.error){
-        alert(data.error);
-        return;
+// 🎯 focar
+function focar(id) {
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
     }
-
-    alert("Conta criada!");
-    showLogin();
-}
-
-// GPS
-function iniciarGPS(id){
-
-    watchId = navigator.geolocation.watchPosition((pos)=>{
-
-        fetch('/location',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-                id,
-                lat:pos.coords.latitude,
-                lng:pos.coords.longitude
-            })
-        });
-
-        document.getElementById("status").innerHTML = "🟢 Online";
-
-    },()=>{
-        document.getElementById("status").innerHTML = "❌ GPS negado";
-    },{
-        enableHighAccuracy:true
-    });
-}
-
-// UI
-function showRegister(){
-    loginBox.style.display="none";
-    registerBox.style.display="block";
-}
-
-function showLogin(){
-    loginBox.style.display="block";
-    registerBox.style.display="none";
 }
 
 </script>
