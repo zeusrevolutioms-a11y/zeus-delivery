@@ -10,40 +10,40 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
 
 body{
-    height:100vh;
-    background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.95)),
-    url('https://images.unsplash.com/photo-1603023168849-1f0f2c1d6d78');
-    background-size:cover;
-    color:white;
+height:100vh;
+background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.95)),
+url('https://images.unsplash.com/photo-1603023168849-1f0f2c1d6d78');
+background-size:cover;
+color:white;
 }
 
 .screen{display:none;height:100vh;justify-content:center;align-items:center;flex-direction:column;}
 .active{display:flex;}
 
 .card{
-    width:90%;
-    max-width:350px;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
+width:90%;
+max-width:350px;
+background:#111;
+padding:20px;
+border-radius:15px;
+text-align:center;
 }
 
 input{
-    width:100%;
-    padding:15px;
-    margin:10px 0;
-    border-radius:10px;
-    border:none;
+width:100%;
+padding:15px;
+margin:10px 0;
+border-radius:10px;
+border:none;
 }
 
 button{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    margin-top:10px;
-    font-weight:bold;
+width:100%;
+padding:15px;
+border:none;
+border-radius:10px;
+margin-top:10px;
+font-weight:bold;
 }
 
 .green{background:#00c853;}
@@ -51,12 +51,12 @@ button{
 .red{background:#d50000;}
 
 .bottom-card{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    background:#111;
-    border-radius:20px 20px 0 0;
-    padding:20px;
+position:fixed;
+bottom:0;
+width:100%;
+background:#111;
+border-radius:20px 20px 0 0;
+padding:20px;
 }
 
 </style>
@@ -65,167 +65,185 @@ button{
 
 <!-- LOADING -->
 <div id="loading" class="screen active">
-    <h2>Carregando...</h2>
+<h2>Carregando Rotas...</h2>
 </div>
 
 <!-- LOGIN -->
 <div id="login" class="screen">
-    <div class="card">
-        <h2>Login</h2>
-        <input id="tel" placeholder="Telefone">
-        <input id="senha" type="password" placeholder="Senha">
-        <button class="green" onclick="login()">Entrar</button>
-        <button onclick="irRegistro()">Criar conta</button>
-        <button onclick="irRecover()">Esqueci senha</button>
-    </div>
+<div class="card">
+<h2>ROTA SPEED</h2>
+<input id="tel" placeholder="Telefone">
+<input id="senha" type="password" placeholder="Senha">
+<button class="green" onclick="login()">Entrar</button>
+<button onclick="irRegistro()">Criar Conta</button>
+<button onclick="irRecover()">Esqueci senha</button>
+</div>
 </div>
 
 <!-- REGISTRO -->
 <div id="register" class="screen">
-    <div class="card">
-        <h2>Cadastro</h2>
-        <input id="nome" placeholder="Nome">
-        <input id="telefone" placeholder="Telefone">
-        <input id="senha_reg" placeholder="Senha">
-        <input id="pergunta" placeholder="Pergunta secreta">
-        <input id="resposta" placeholder="Resposta">
-        <button class="green" onclick="registrar()">Cadastrar</button>
-        <button onclick="voltar()">Voltar</button>
-    </div>
+<div class="card">
+<input id="nome" placeholder="Nome">
+<input id="telefone" placeholder="Telefone">
+<input id="senha_reg" placeholder="Senha">
+<input id="pergunta" placeholder="Pergunta secreta">
+<input id="resposta" placeholder="Resposta">
+<button class="green" onclick="registrar()">Cadastrar</button>
+<button onclick="voltar()">Voltar</button>
+</div>
 </div>
 
 <!-- RECUPERAR -->
 <div id="recover" class="screen">
-    <div class="card">
-        <h2>Recuperar</h2>
-        <input id="tel_rec" placeholder="Telefone">
-        <button onclick="buscar()">Buscar pergunta</button>
-        <p id="perg"></p>
-        <input id="resp_rec" placeholder="Resposta">
-        <input id="nova" placeholder="Nova senha">
-        <button class="green" onclick="recuperar()">Recuperar</button>
-        <button onclick="voltar()">Voltar</button>
-    </div>
+<div class="card">
+<input id="tel_rec" placeholder="Telefone">
+<button onclick="buscar()">Buscar pergunta</button>
+<p id="perg"></p>
+<input id="resp_rec" placeholder="Resposta">
+<input id="nova" placeholder="Nova senha">
+<button class="green" onclick="recuperar()">Recuperar</button>
+<button onclick="voltar()">Voltar</button>
+</div>
 </div>
 
 <!-- APP -->
 <div id="app" class="screen">
-    <div class="bottom-card">
-        <h2>🏍️ Em Rota</h2>
-        <p id="status">Ativo</p>
+<div class="bottom-card">
 
-        <button class="blue" onclick="cheguei()">Cheguei</button>
-        <button class="green" onclick="finalizar()">Finalizar</button>
-        <button class="red" onclick="parar()">Sair</button>
-    </div>
+<h2>🏍️ Em Rota</h2>
+<p id="status">Iniciando...</p>
+
+<button class="blue" onclick="cheguei()">📍 Cheguei</button>
+<button class="green" onclick="finalizar()">✅ Finalizar</button>
+<button class="red" onclick="logout()">⛔ Sair do App</button>
+
 </div>
+</div>
+
+<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
 <script>
 
-let watchId = null;
-let user = null;
+let watchId=null;
+let user=null;
 
 setTimeout(()=>{
-    loading.classList.remove("active");
+loading.classList.remove("active");
 
-    const saved = localStorage.getItem("user");
+const saved=localStorage.getItem("user");
 
-    if(saved){
-        user = JSON.parse(saved);
-        abrirApp();
-    }else{
-        login.classList.add("active");
-    }
+if(saved){
+user=JSON.parse(saved);
+abrirApp();
+}else{
+login.classList.add("active");
+}
 },1500);
 
 // LOGIN
 function login(){
-    fetch('/login',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ telefone:tel.value, senha:senha.value })
-    })
-    .then(r=>r.json())
-    .then(d=>{
-        if(d.error) return alert("Erro login");
-
-        user = d.user;
-        localStorage.setItem("user",JSON.stringify(user));
-        abrirApp();
-    });
+fetch('/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({telefone:tel.value,senha:senha.value})
+})
+.then(r=>r.json())
+.then(d=>{
+if(d.error) return alert("Login inválido");
+user=d.user;
+localStorage.setItem("user",JSON.stringify(user));
+abrirApp();
+});
 }
 
 // REGISTRO
 function registrar(){
-    fetch('/register',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            nome:nome.value,
-            telefone:telefone.value,
-            senha:senha_reg.value,
-            pergunta:pergunta.value,
-            resposta:resposta.value
-        })
-    }).then(()=>alert("Conta criada"));
+fetch('/register',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+nome:nome.value,
+telefone:telefone.value,
+senha:senha_reg.value,
+pergunta:pergunta.value,
+resposta:resposta.value
+})
+}).then(()=>alert("Conta criada"));
 }
 
 // RECUPERAR
 function buscar(){
-    fetch('/get-question',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ telefone:tel_rec.value })
-    }).then(r=>r.json()).then(d=>{
-        perg.innerHTML = d.pergunta;
-    });
+fetch('/get-question',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({telefone:tel_rec.value})
+}).then(r=>r.json()).then(d=>{perg.innerHTML=d.pergunta});
 }
 
 function recuperar(){
-    fetch('/recover',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-            telefone:tel_rec.value,
-            resposta:resp_rec.value,
-            novaSenha:nova.value
-        })
-    }).then(()=>alert("Senha alterada"));
+fetch('/recover',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+telefone:tel_rec.value,
+resposta:resp_rec.value,
+novaSenha:nova.value
+})
+}).then(()=>alert("Senha alterada"));
+}
+
+// APP
+function abrirApp(){
+login.classList.remove("active");
+register.classList.remove("active");
+recover.classList.remove("active");
+app.classList.add("active");
+
+iniciar();
+}
+
+// RASTREAMENTO ORIGINAL
+function iniciar(){
+watchId=navigator.geolocation.watchPosition((pos)=>{
+fetch('/location',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+id:user.id,
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
+})
+});
+
+status.innerHTML="🛰️ Atualizando posição...";
+});
+}
+
+// AÇÕES
+function tocar(){som.play();}
+
+function cheguei(){
+status.innerHTML="📍 Chegou no local";
+tocar();
+}
+
+function finalizar(){
+status.innerHTML="✅ Entrega finalizada";
+tocar();
+}
+
+function logout(){
+localStorage.removeItem("user");
+location.reload();
 }
 
 // UI
-function abrirApp(){
-    login.classList.remove("active");
-    register.classList.remove("active");
-    recover.classList.remove("active");
-    app.classList.add("active");
-}
-
-// ROTA (SEU ORIGINAL ADAPTADO)
-function iniciar(){
-    watchId = navigator.geolocation.watchPosition((pos)=>{
-        fetch('/location',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({
-                id:user.id,
-                lat:pos.coords.latitude,
-                lng:pos.coords.longitude
-            })
-        });
-    });
-}
-
-function cheguei(){ status.innerHTML="Chegou"; }
-function finalizar(){ status.innerHTML="Finalizado"; }
-function parar(){ localStorage.removeItem("user"); location.reload(); }
-
-function irRegistro(){ login.classList.remove("active"); register.classList.add("active"); }
-function irRecover(){ login.classList.remove("active"); recover.classList.add("active"); }
+function irRegistro(){login.classList.remove("active");register.classList.add("active");}
+function irRecover(){login.classList.remove("active");recover.classList.add("active");}
 function voltar(){
-    register.classList.remove("active");
-    recover.classList.remove("active");
-    login.classList.add("active");
+register.classList.remove("active");
+recover.classList.remove("active");
+login.classList.add("active");
 }
 
 </script>
