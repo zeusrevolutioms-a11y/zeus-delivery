@@ -1,51 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ROTA SPEED - Painel</title>
+<title>ROTA SPEED - PAINEL</title>
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
-    <style>
-        body { font-family: Arial; margin:0; }
+<style>
+body{margin:0;font-family:Arial;}
+#map{height:90vh;}
 
-        #topbar {
-            padding: 10px;
-            background: #111;
-            color: white;
-        }
-
-        #map { height: 500px; }
-
-        input { padding:5px; }
-        button { padding:6px; }
-
-        #list {
-            background:#f4f4f4;
-            padding:10px;
-        }
-
-        .item {
-            padding:8px;
-            margin:5px;
-            background:white;
-            cursor:pointer;
-            border-radius:5px;
-        }
-
-        .online { color: green; }
-        .offline { color: red; }
-    </style>
+#topbar{
+    background:#111;
+    color:white;
+    padding:10px;
+}
+</style>
 </head>
+
 <body>
 
 <div id="topbar">
-    🚀 ROTA SPEED | 🔎 Buscar:
-    <input id="search">
-    <button onclick="buscar()">Buscar</button>
+🔎 Buscar:
+<input id="search">
+<button onclick="buscar()">OK</button>
 </div>
 
 <div id="map"></div>
-<div id="list"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
@@ -55,81 +35,36 @@ const map = L.map('map').setView([-20.8113, -49.3758], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-const motoIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
-    iconSize: [40,40]
+const icon = L.icon({
+    iconUrl:'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+    iconSize:[40,40]
 });
 
 let markers = {};
 
-// 🔎 buscar
-function buscar(){
-    const id = document.getElementById("search").value;
-
-    if(markers[id]){
-        map.setView(markers[id].getLatLng(),17);
-        markers[id].openPopup();
-    }
-}
-
-// 📍 endereço
-async function getEndereco(lat,lng){
-    try{
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await res.json();
-        return data.display_name;
-    }catch{
-        return "Endereço não encontrado";
-    }
-}
-
-// 🔄 atualizar
 setInterval(async()=>{
 
     const res = await fetch('/motoboys');
     const data = await res.json();
 
-    let lista = "";
-
     for(let id in data){
 
-        const {lat,lng,updated_at} = data[id];
-
-        const online = (Date.now() - new Date(updated_at)) < 10000;
-
-        lista += `
-        <div class="item" onclick="focar('${id}')">
-            🏍️ ${id} - 
-            <span class="${online?'online':'offline'}">
-                ${online?'ONLINE':'OFFLINE'}
-            </span>
-        </div>`;
+        const {lat,lng} = data[id];
 
         if(!markers[id]){
-            const marker = L.marker([lat,lng],{icon:motoIcon}).addTo(map);
-
-            const endereco = await getEndereco(lat,lng);
-
-            marker.bindPopup(`
-                🏍️ Motoboy: ${id}<br>
-                📍 ${endereco}
-            `);
-
-            markers[id] = marker;
+            markers[id] = L.marker([lat,lng],{icon}).addTo(map)
+            .bindPopup("Motoboy: "+id);
         }else{
             markers[id].setLatLng([lat,lng]);
         }
     }
 
-    document.getElementById("list").innerHTML = lista;
-
 },3000);
 
-// 🎯 focar
-function focar(id){
+function buscar(){
+    const id = document.getElementById("search").value;
     if(markers[id]){
         map.setView(markers[id].getLatLng(),17);
-        markers[id].openPopup();
     }
 }
 
