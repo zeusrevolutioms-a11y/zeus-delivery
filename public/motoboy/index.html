@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Motoboy</title>
+</head>
+<body>
+
+<h2>🏍️ Rastreamento Ativo</h2>
+
+<button onclick="start()">Iniciar Rastreamento</button>
+
+<script>
+let id = null;
+
+function start() {
+    id = prompt("Digite seu ID:");
+
+    navigator.geolocation.watchPosition((pos) => {
+
+        fetch('/location', { // 👈 corrigido
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: id,
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+            })
+        });
+
+    }, (err) => {
+        alert("Erro no GPS: " + err.message);
+    }, {
+        enableHighAccuracy: true
+    });
+
+    alert("Rastreamento iniciado 🚀");
+}
+</script>
+
+</body>
+</html>

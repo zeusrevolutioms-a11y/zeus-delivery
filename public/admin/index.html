@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Painel</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body { font-family: Arial; }
+        #map { height: 500px; }
+
+        #topbar {
+            padding: 10px;
+            background: #111;
+            color: white;
+        }
+
+        input {
+            padding: 5px;
+            margin-right: 5px;
+        }
+
+        button {
+            padding: 6px;
+            cursor: pointer;
+        }
+
+        #list {
+            margin-top: 10px;
+        }
+
+        .item {
+            background: #eee;
+            padding: 5px;
+            margin: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="topbar">
+    🔎 Buscar motoboy:
+    <input id="search" placeholder="ID">
+    <button onclick="buscar()">Buscar</button>
+</div>
+
+<div id="map"></div>
+
+<div id="list"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+// 📍 Rio Preto
+const map = L.map('map').setView([-20.8113, -49.3758], 13);
+
+// 🌍 mapa
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// 🏍️ ícone
+const motoIcon = L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+    iconSize: [40, 40]
+});
+
+let markers = {};
+let dadosAtuais = {};
+
+// 🔎 buscar motoboy
+function buscar() {
+    const id = document.getElementById("search").value;
+
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
+    } else {
+        alert("Motoboy não encontrado");
+    }
+}
+
+// 📍 endereço
+async function getEndereco(lat, lng) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        return data.display_name;
+    } catch {
+        return "Endereço não encontrado";
+    }
+}
+
+// 🔄 atualizar
+setInterval(async () => {
+
+    const res = await fetch('/motoboys'); // 👈 corrigido
+    const data = await res.json();
+
+    dadosAtuais = data;
+
+    let listaHTML = "";
+
+    for (let id in data) {
+        const { lat, lng } = data[id];
+
+        listaHTML += `<div class="item" onclick="focar('${id}')">🏍️ Motoboy ${id}</div>`;
+
+        if (!markers[id]) {
+
+            const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
+
+            const endereco = await getEndereco(lat, lng);
+
+            marker.bindPopup(`
+                🏍️ Motoboy: ${id} <br>
+                📍 ${endereco}
+            `);
+
+            markers[id] = marker;
+
+        } else {
+            markers[id].setLatLng([lat, lng]);
+        }
+    }
+
+    document.getElementById("list").innerHTML = listaHTML;
+
+}, 3000);
+
+// 🎯 focar
+function focar(id) {
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
+    }
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+🚀 COMO LIGAR TUDO (SEQUÊNCIA CERTA)
+
+Abre 3 CMD:
+
+1️⃣ Backend
+node server.js
+2️⃣ Frontend
+http-server
+3️⃣ HTTPS FRONT
+npx localtunnel --port 8080
+
+
+🔥 COMO LIGAR TUDO (PASSO FINAL)
+
+Abre 3 CMD:
+
+1️⃣ Backend
+node server.js
+2️⃣ Frontend
+http-server
+3️⃣ HTTPS FRONT
+npx localtunnel --port 8080
+4️⃣ HTTPS BACK
+npx localtunnel --port 3000
+🌐 LINKS
+Motoboy:
+https://fresh-melons-brush.loca.lt/motoboy
+Admin:
+https://fresh-melons-brush.loca.lt/admin
