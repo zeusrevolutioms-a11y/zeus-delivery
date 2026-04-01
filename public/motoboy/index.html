@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>ROTA SPEED - Motoboy</title>
-
+<title>ROTA SPEED</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -15,277 +14,218 @@ body{
     background:linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.95)),
     url('https://images.unsplash.com/photo-1603023168849-1f0f2c1d6d78');
     background-size:cover;
-    background-position:center;
     color:white;
 }
 
-/* SCREENS */
-.screen{
-    display:none;
-    height:100vh;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-}
-
+.screen{display:none;height:100vh;justify-content:center;align-items:center;flex-direction:column;}
 .active{display:flex;}
 
-/* LOADING */
-#loading img{
-    width:130px;
-    animation:pulse 1.5s infinite;
-}
-
-@keyframes pulse{
-    0%{opacity:0.5;}
-    50%{opacity:1;}
-    100%{opacity:0.5;}
-}
-
-/* CARD LOGIN */
 .card{
     width:90%;
     max-width:350px;
-    background:rgba(0,0,0,0.7);
-    padding:25px;
-    border-radius:20px;
-    backdrop-filter:blur(12px);
+    background:#111;
+    padding:20px;
+    border-radius:15px;
     text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
 
-.logo{
-    width:110px;
-    margin-bottom:15px;
-}
-
-/* INPUT */
 input{
     width:100%;
     padding:15px;
-    margin:15px 0;
-    border-radius:12px;
+    margin:10px 0;
+    border-radius:10px;
     border:none;
-    font-size:16px;
 }
 
-/* BOTÃO */
 button{
     width:100%;
-    padding:16px;
+    padding:15px;
     border:none;
-    border-radius:14px;
-    font-size:16px;
-    font-weight:bold;
+    border-radius:10px;
     margin-top:10px;
+    font-weight:bold;
 }
 
-/* CORES */
 .green{background:#00c853;}
-.red{background:#d50000;}
 .blue{background:#2962ff;}
+.red{background:#d50000;}
 
-/* APP ESTILO UBER */
-#app{
-    position:relative;
-}
-
-/* CARD INFERIOR */
 .bottom-card{
     position:fixed;
     bottom:0;
-    left:0;
     width:100%;
     background:#111;
-    border-radius:25px 25px 0 0;
+    border-radius:20px 20px 0 0;
     padding:20px;
-    box-shadow:0 -5px 20px rgba(0,0,0,0.6);
-    animation:slideUp 0.4s ease;
-}
-
-@keyframes slideUp{
-    from{transform:translateY(100%);}
-    to{transform:translateY(0);}
-}
-
-.status-title{
-    font-size:22px;
-    font-weight:bold;
-}
-
-.status-sub{
-    opacity:0.7;
-    margin-bottom:10px;
-}
-
-.status{
-    margin:15px 0;
-    font-size:14px;
-}
-
-.big-button{
-    width:100%;
-    padding:18px;
-    border-radius:15px;
-    border:none;
-    font-size:16px;
-    font-weight:bold;
-    margin-top:10px;
 }
 
 </style>
 </head>
 <body>
 
-<!-- 🔄 LOADING -->
+<!-- LOADING -->
 <div id="loading" class="screen active">
-    <img src="https://i.imgur.com/kkjBM71.png">
-    <h2>Carregando Rotas...</h2>
+    <h2>Carregando...</h2>
 </div>
 
-<!-- 🔐 LOGIN -->
+<!-- LOGIN -->
 <div id="login" class="screen">
     <div class="card">
-
-        <img class="logo" src="https://i.imgur.com/Ce2wIT5.png">
-
-        <h2>ROTA SPEED</h2>
-        <p>Motoboy</p>
-
-        <input id="id" placeholder="Seu ID">
-
-        <button class="green" onclick="entrar()">🚀 Entrar</button>
-
+        <h2>Login</h2>
+        <input id="tel" placeholder="Telefone">
+        <input id="senha" type="password" placeholder="Senha">
+        <button class="green" onclick="login()">Entrar</button>
+        <button onclick="irRegistro()">Criar conta</button>
+        <button onclick="irRecover()">Esqueci senha</button>
     </div>
 </div>
 
-<!-- 🏍️ APP -->
+<!-- REGISTRO -->
+<div id="register" class="screen">
+    <div class="card">
+        <h2>Cadastro</h2>
+        <input id="nome" placeholder="Nome">
+        <input id="telefone" placeholder="Telefone">
+        <input id="senha_reg" placeholder="Senha">
+        <input id="pergunta" placeholder="Pergunta secreta">
+        <input id="resposta" placeholder="Resposta">
+        <button class="green" onclick="registrar()">Cadastrar</button>
+        <button onclick="voltar()">Voltar</button>
+    </div>
+</div>
+
+<!-- RECUPERAR -->
+<div id="recover" class="screen">
+    <div class="card">
+        <h2>Recuperar</h2>
+        <input id="tel_rec" placeholder="Telefone">
+        <button onclick="buscar()">Buscar pergunta</button>
+        <p id="perg"></p>
+        <input id="resp_rec" placeholder="Resposta">
+        <input id="nova" placeholder="Nova senha">
+        <button class="green" onclick="recuperar()">Recuperar</button>
+        <button onclick="voltar()">Voltar</button>
+    </div>
+</div>
+
+<!-- APP -->
 <div id="app" class="screen">
-
-    <!-- FUNDO ESCURO -->
-    <div style="position:absolute;width:100%;height:100%;background:rgba(0,0,0,0.5);"></div>
-
-    <!-- CARD ESTILO APP -->
     <div class="bottom-card">
+        <h2>🏍️ Em Rota</h2>
+        <p id="status">Ativo</p>
 
-        <div class="status-title">🏍️ Em Rota</div>
-        <div class="status-sub">Você está online</div>
-
-        <div class="status" id="status">
-            🛰️ Atualizando posição em tempo real...
-        </div>
-
-        <button class="big-button blue" onclick="cheguei()">
-            📍 Cheguei
-        </button>
-
-        <button class="big-button green" onclick="finalizar()">
-            ✅ Finalizar Entrega
-        </button>
-
-        <button class="big-button red" onclick="parar()">
-            ⛔ Parar Rota
-        </button>
-
+        <button class="blue" onclick="cheguei()">Cheguei</button>
+        <button class="green" onclick="finalizar()">Finalizar</button>
+        <button class="red" onclick="parar()">Sair</button>
     </div>
-
 </div>
-
-<!-- 🔊 SOM -->
-<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
 <script>
 
 let watchId = null;
+let user = null;
 
-/* LOADING */
 setTimeout(()=>{
-    document.getElementById("loading").classList.remove("active");
-    document.getElementById("login").classList.add("active");
+    loading.classList.remove("active");
 
-    const saved = localStorage.getItem("motoboy_id");
+    const saved = localStorage.getItem("user");
+
     if(saved){
-        document.getElementById("id").value = saved;
+        user = JSON.parse(saved);
+        abrirApp();
+    }else{
+        login.classList.add("active");
     }
-},2000);
+},1500);
 
-/* LOGIN */
-function entrar(){
+// LOGIN
+function login(){
+    fetch('/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ telefone:tel.value, senha:senha.value })
+    })
+    .then(r=>r.json())
+    .then(d=>{
+        if(d.error) return alert("Erro login");
 
-    const id = document.getElementById("id").value;
-
-    if(!id){
-        alert("Digite seu ID");
-        return;
-    }
-
-    localStorage.setItem("motoboy_id", id);
-
-    document.getElementById("login").classList.remove("active");
-    document.getElementById("app").classList.add("active");
-
-    iniciarRastreamento(id);
+        user = d.user;
+        localStorage.setItem("user",JSON.stringify(user));
+        abrirApp();
+    });
 }
 
-/* RASTREAMENTO (INTACTO) */
-function iniciarRastreamento(id){
+// REGISTRO
+function registrar(){
+    fetch('/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            nome:nome.value,
+            telefone:telefone.value,
+            senha:senha_reg.value,
+            pergunta:pergunta.value,
+            resposta:resposta.value
+        })
+    }).then(()=>alert("Conta criada"));
+}
 
-    if(watchId){
-        navigator.geolocation.clearWatch(watchId);
-    }
+// RECUPERAR
+function buscar(){
+    fetch('/get-question',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ telefone:tel_rec.value })
+    }).then(r=>r.json()).then(d=>{
+        perg.innerHTML = d.pergunta;
+    });
+}
 
+function recuperar(){
+    fetch('/recover',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            telefone:tel_rec.value,
+            resposta:resp_rec.value,
+            novaSenha:nova.value
+        })
+    }).then(()=>alert("Senha alterada"));
+}
+
+// UI
+function abrirApp(){
+    login.classList.remove("active");
+    register.classList.remove("active");
+    recover.classList.remove("active");
+    app.classList.add("active");
+}
+
+// ROTA (SEU ORIGINAL ADAPTADO)
+function iniciar(){
     watchId = navigator.geolocation.watchPosition((pos)=>{
-
         fetch('/location',{
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
-                id:id,
+                id:user.id,
                 lat:pos.coords.latitude,
                 lng:pos.coords.longitude
             })
         });
-
-        document.getElementById("status").innerHTML =
-        "🛰️ Atualizando posição em tempo real...";
-
-    },(err)=>{
-        alert("Erro GPS: "+err.message);
-    },{
-        enableHighAccuracy:true
     });
-
-    document.getElementById("status").innerHTML =
-    "✅ Rastreamento ativo";
 }
 
-/* AÇÕES */
-function tocar(){
-    document.getElementById("som").play();
-}
+function cheguei(){ status.innerHTML="Chegou"; }
+function finalizar(){ status.innerHTML="Finalizado"; }
+function parar(){ localStorage.removeItem("user"); location.reload(); }
 
-function cheguei(){
-    document.getElementById("status").innerHTML = "📍 Chegou no local";
-    tocar();
-}
-
-function finalizar(){
-    document.getElementById("status").innerHTML = "✅ Entrega finalizada";
-    tocar();
-}
-
-function parar(){
-
-    if(watchId){
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
-
-    document.getElementById("app").classList.remove("active");
-    document.getElementById("login").classList.add("active");
-
-    document.getElementById("status").innerHTML =
-    "Rastreamento parado";
+function irRegistro(){ login.classList.remove("active"); register.classList.add("active"); }
+function irRecover(){ login.classList.remove("active"); recover.classList.add("active"); }
+function voltar(){
+    register.classList.remove("active");
+    recover.classList.remove("active");
+    login.classList.add("active");
 }
 
 </script>
