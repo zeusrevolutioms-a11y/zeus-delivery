@@ -1,70 +1,173 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>ROTA SPEED - Motoboy</title>
+<meta charset="UTF-8">
+<title>ROTA SPEED - Motoboy</title>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            background:#111;
-            color:white;
-            font-family:Arial;
-            text-align:center;
-            padding:20px;
-        }
+<style>
 
-        h2 { margin-bottom:20px; }
+/* RESET */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
 
-        input {
-            padding:12px;
-            width:80%;
-            font-size:18px;
-            margin-bottom:15px;
-            border-radius:8px;
-            border:none;
-        }
+/* FUNDO */
+body{
+    height:100vh;
+    background:linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
+    url('https://images.unsplash.com/photo-1603023168849-1f0f2c1d6d78');
+    background-size:cover;
+    background-position:center;
+    color:white;
+}
 
-        button {
-            padding:15px;
-            width:80%;
-            font-size:18px;
-            border:none;
-            border-radius:10px;
-            background:#00c853;
-            color:white;
-        }
+/* CENTRALIZA */
+.screen{
+    display:none;
+    height:100vh;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    padding:20px;
+}
 
-        .status {
-            margin-top:20px;
-        }
-    </style>
+/* ATIVA */
+.active{
+    display:flex;
+}
+
+/* LOGO */
+.logo{
+    width:120px;
+    margin-bottom:20px;
+}
+
+/* CARD */
+.card{
+    width:100%;
+    max-width:350px;
+    background:rgba(0,0,0,0.6);
+    padding:25px;
+    border-radius:15px;
+    backdrop-filter:blur(10px);
+    text-align:center;
+}
+
+/* INPUT */
+input{
+    width:100%;
+    padding:14px;
+    margin:15px 0;
+    border-radius:10px;
+    border:none;
+    font-size:16px;
+}
+
+/* BOTÃO */
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:#00c853;
+    color:white;
+    font-size:18px;
+    font-weight:bold;
+}
+
+/* TEXTO */
+h2{
+    margin-bottom:10px;
+}
+
+/* STATUS */
+.status{
+    margin-top:20px;
+    font-size:16px;
+}
+
+/* LOADING */
+.loader{
+    border:5px solid #333;
+    border-top:5px solid #00c853;
+    border-radius:50%;
+    width:60px;
+    height:60px;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    0%{ transform:rotate(0deg); }
+    100%{ transform:rotate(360deg); }
+}
+
+</style>
 </head>
 <body>
 
-<h2>🏍️ ROTA SPEED</h2>
+<!-- 🔄 LOADING -->
+<div id="loading" class="screen active">
+    <div class="loader"></div>
+    <h2>Carregando sistema...</h2>
+</div>
 
-<input id="id" placeholder="Seu ID">
+<!-- 🔐 LOGIN -->
+<div id="login" class="screen">
+    <div class="card">
 
-<br>
+        <!-- TROCA AQUI PELO SEU LOGO -->
+        <img class="logo" src="https://i.imgur.com/Ce2wIT5.png">
 
-<button onclick="start()">🚀 Iniciar Rastreamento</button>
+        <h2>ROTA SPEED</h2>
+        <p>Motoboy</p>
 
-<div class="status" id="status"></div>
+        <input id="id" placeholder="Seu ID">
+
+        <button onclick="entrar()">🚀 Entrar</button>
+
+    </div>
+</div>
+
+<!-- 🏍️ RASTREAMENTO -->
+<div id="app" class="screen">
+    <div class="card">
+
+        <h2>🏍️ Em Rota</h2>
+        <p>Você está online</p>
+
+        <div class="status" id="status">Iniciando...</div>
+
+        <button onclick="parar()" style="background:#d50000;margin-top:20px;">
+            ⛔ Parar Rota
+        </button>
+
+    </div>
+</div>
 
 <script>
 
 let watchId = null;
 
-// 🔁 carregar ID salvo
-window.onload = () => {
+/* 🔄 LOADING INICIAL */
+setTimeout(()=>{
+    document.getElementById("loading").classList.remove("active");
+    document.getElementById("login").classList.add("active");
+
     const saved = localStorage.getItem("motoboy_id");
     if(saved){
         document.getElementById("id").value = saved;
     }
-};
 
-function start(){
+},2000);
+
+/* 🔐 LOGIN */
+function entrar(){
 
     const id = document.getElementById("id").value;
 
@@ -73,7 +176,16 @@ function start(){
         return;
     }
 
-    localStorage.setItem("motoboy_id",id);
+    localStorage.setItem("motoboy_id", id);
+
+    document.getElementById("login").classList.remove("active");
+    document.getElementById("app").classList.add("active");
+
+    iniciarRastreamento(id);
+}
+
+/* 📡 RASTREAMENTO */
+function iniciarRastreamento(id){
 
     if(watchId){
         navigator.geolocation.clearWatch(watchId);
@@ -91,7 +203,8 @@ function start(){
             })
         });
 
-        document.getElementById("status").innerHTML = "📡 Enviando localização...";
+        document.getElementById("status").innerHTML =
+        "📡 Enviando localização...";
 
     },(err)=>{
         alert("Erro GPS: "+err.message);
@@ -99,7 +212,23 @@ function start(){
         enableHighAccuracy:true
     });
 
-    document.getElementById("status").innerHTML = "✅ Rastreamento ativo";
+    document.getElementById("status").innerHTML =
+    "✅ Rastreamento ativo";
+}
+
+/* ⛔ PARAR */
+function parar(){
+
+    if(watchId){
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+
+    document.getElementById("app").classList.remove("active");
+    document.getElementById("login").classList.add("active");
+
+    document.getElementById("status").innerHTML =
+    "Rastreamento parado";
 }
 
 </script>
