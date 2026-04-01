@@ -1,10 +1,6 @@
-// ================================
-// 🚀 ROTA SPEED SERVER COM BANCO REAL
-// ================================
-
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
+const db = require('./db');
 
 const app = express();
 
@@ -13,83 +9,110 @@ app.use(cors());
 app.use(express.static('public'));
 
 // ================================
-// 🧠 BANCO SQLITE
+// 🧠 CRIAR TABELAS AUTOMÁTICO (MYSQL)
 // ================================
-const db = new sqlite3.Database('./database.db');
+(async () => {
+    try {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id VARCHAR(50) PRIMARY KEY,
+                senha VARCHAR(255)
+            )
+        `);
 
-// criar tabelas
-db.run(`
-CREATE TABLE IF NOT EXISTS usuarios (
-    id TEXT PRIMARY KEY,
-    senha TEXT
-)
-`);
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS motoboys (
+                id VARCHAR(50) PRIMARY KEY,
+                lat DOUBLE,
+                lng DOUBLE,
+                updated BIGINT
+            )
+        `);
 
-db.run(`
-CREATE TABLE IF NOT EXISTS motoboys (
-    id TEXT PRIMARY KEY,
-    lat REAL,
-    lng REAL,
-    updated INTEGER
-)
-`);
+        console.log('📦 Tabelas prontas');
+
+    } catch (err) {
+        console.log(err);
+    }
+})();
 
 // ================================
 // 🧑‍💻 CADASTRO
 // ================================
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { id, senha } = req.body;
 
-    db.get("SELECT * FROM usuarios WHERE id = ?", [id], (err, row) => {
-        if (row) {
+    try {
+        const [rows] = await db.query("SELECT * FROM usuarios WHERE id = ?", [id]);
+
+        if (rows.length > 0) {
             return res.send({ error: "ID já existe" });
         }
 
-        db.run("INSERT INTO usuarios (id, senha) VALUES (?, ?)", [id, senha]);
+        await db.query("INSERT INTO usuarios (id, senha) VALUES (?, ?)", [id, senha]);
 
         res.send({ status: "ok" });
-    });
+
+    } catch (err) {
+        console.log(err);
+        res.send({ error: "Erro no servidor" });
+    }
 });
 
 // ================================
 // 🔐 LOGIN
 // ================================
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
     const { id, senha } = req.body;
 
-    db.get("SELECT * FROM usuarios WHERE id = ?", [id], (err, user) => {
+    try {
+        const [rows] = await db.query("SELECT * FROM usuarios WHERE id = ?", [id]);
+
+        const user = rows[0];
+
         if (!user || user.senha !== senha) {
             return res.send({ error: "Login inválido" });
         }
 
         res.send({ status: "ok" });
-    });
+
+    } catch (err) {
+        console.log(err);
+        res.send({ error: "Erro no servidor" });
+    }
 });
 
 // ================================
 // 📍 LOCALIZAÇÃO
 // ================================
-app.post('/location', (req, res) => {
+app.post('/location', async (req, res) => {
     const { id, lat, lng } = req.body;
 
-    db.run(`
-        INSERT INTO motoboys (id, lat, lng, updated)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-        lat=excluded.lat,
-        lng=excluded.lng,
-        updated=excluded.updated
-    `, [id, lat, lng, Date.now()]);
+    try {
+        await db.query(`
+            INSERT INTO motoboys (id, lat, lng, updated)
+            VALUES (?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+            lat = VALUES(lat),
+            lng = VALUES(lng),
+            updated = VALUES(updated)
+        `, [id, lat, lng, Date.now()]);
 
-    res.send({ status: 'ok' });
+        res.send({ status: 'ok' });
+
+    } catch (err) {
+        console.log(err);
+        res.send({ error: "Erro ao salvar localização" });
+    }
 });
 
 // ================================
-// 📡 LISTAR + ONLINE/OFFLINE
+// 📡 LISTAR MOTOBOYS
 // ================================
-app.get('/motoboys', (req, res) => {
+app.get('/motoboys', async (req, res) => {
 
-    db.all("SELECT * FROM motoboys", [], (err, rows) => {
+    try {
+        const [rows] = await db.query("SELECT * FROM motoboys");
 
         const agora = Date.now();
         let resposta = {};
@@ -105,10 +128,14 @@ app.get('/motoboys', (req, res) => {
         });
 
         res.send(resposta);
-    });
+
+    } catch (err) {
+        console.log(err);
+        res.send({ error: "Erro ao listar" });
+    }
 });
 
 // ================================
 app.listen(process.env.PORT || 3000, () => {
-    console.log('🔥 SERVER rodando com banco REAL');
+    console.log('🔥 SERVER MYSQL RODANDO');
 });
