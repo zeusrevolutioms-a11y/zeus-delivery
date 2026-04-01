@@ -1,3 +1,7 @@
+// ================================
+// 🚀 ROTA SPEED SERVER
+// ================================
+
 const express = require('express');
 const cors = require('cors');
 
@@ -5,25 +9,35 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-app.use(express.static('public')); // 👈 importante pra abrir HTML
+app.use(express.static('public')); // frontend
 
+// 📦 memória (depois vamos trocar por banco)
 let motoboys = {};
 
-// 📍 Atualizar localização
+// 📍 receber localização
 app.post('/location', (req, res) => {
     const { id, lat, lng } = req.body;
 
-    motoboys[id] = { lat, lng };
+    motoboys[id] = {
+        lat,
+        lng,
+        updated: Date.now()
+    };
 
     res.send({ status: 'ok' });
 });
 
-// 📡 Listar
+// 📡 listar motoboys
 app.get('/motoboys', (req, res) => {
     res.send(motoboys);
 });
 
-// ⚠️ porta dinâmica (Render precisa disso)
+// ❤️ status servidor
+app.get('/', (req, res) => {
+    res.send("ROTA SPEED ONLINE 🚀");
+});
+
+// ⚠️ render
 app.listen(process.env.PORT || 3000, () => {
     console.log('🔥 SERVER rodando');
 });
