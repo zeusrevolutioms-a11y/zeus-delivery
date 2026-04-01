@@ -1,40 +1,107 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Motoboy</title>
+    <title>ROTA SPEED - Motoboy</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            background:#111;
+            color:white;
+            font-family:Arial;
+            text-align:center;
+            padding:20px;
+        }
+
+        h2 { margin-bottom:20px; }
+
+        input {
+            padding:12px;
+            width:80%;
+            font-size:18px;
+            margin-bottom:15px;
+            border-radius:8px;
+            border:none;
+        }
+
+        button {
+            padding:15px;
+            width:80%;
+            font-size:18px;
+            border:none;
+            border-radius:10px;
+            background:#00c853;
+            color:white;
+        }
+
+        .status {
+            margin-top:20px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>🏍️ Rastreamento Ativo</h2>
+<h2>🏍️ ROTA SPEED</h2>
 
-<button onclick="start()">Iniciar Rastreamento</button>
+<input id="id" placeholder="Seu ID">
+
+<br>
+
+<button onclick="start()">🚀 Iniciar Rastreamento</button>
+
+<div class="status" id="status"></div>
 
 <script>
-let id = null;
 
-function start() {
-    id = prompt("Digite seu ID:");
+let watchId = null;
 
-    navigator.geolocation.watchPosition((pos) => {
+// 🔁 carregar ID salvo
+window.onload = () => {
+    const saved = localStorage.getItem("motoboy_id");
+    if(saved){
+        document.getElementById("id").value = saved;
+    }
+};
 
-        fetch('/location', { // 👈 corrigido
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: id,
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude
+function start(){
+
+    const id = document.getElementById("id").value;
+
+    if(!id){
+        alert("Digite seu ID");
+        return;
+    }
+
+    localStorage.setItem("motoboy_id",id);
+
+    if(watchId){
+        navigator.geolocation.clearWatch(watchId);
+    }
+
+    watchId = navigator.geolocation.watchPosition((pos)=>{
+
+        fetch('/location',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                id:id,
+                lat:pos.coords.latitude,
+                lng:pos.coords.longitude
             })
         });
 
-    }, (err) => {
-        alert("Erro no GPS: " + err.message);
-    }, {
-        enableHighAccuracy: true
+        document.getElementById("status").innerHTML = "📡 Enviando localização...";
+
+    },(err)=>{
+        alert("Erro GPS: "+err.message);
+    },{
+        enableHighAccuracy:true
     });
 
-    alert("Rastreamento iniciado 🚀");
+    document.getElementById("status").innerHTML = "✅ Rastreamento ativo";
 }
+
 </script>
 
 </body>
