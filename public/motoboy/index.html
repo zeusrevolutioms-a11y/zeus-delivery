@@ -1,100 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ROTA SPEED</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROTA SPEED</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        body {
-            margin:0;
-            font-family: Arial;
-            background: linear-gradient(135deg,#0f172a,#1e293b);
-            color:white;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-        }
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    color:white;
+}
 
-        .card {
-            background:#111827;
-            padding:30px;
-            border-radius:15px;
-            width:90%;
-            max-width:350px;
-            text-align:center;
-            box-shadow:0 0 25px rgba(0,0,0,0.6);
-        }
+.card{
+    background:#111827;
+    padding:30px;
+    border-radius:15px;
+    width:90%;
+    max-width:350px;
+    text-align:center;
+}
 
-        input {
-            width:100%;
-            padding:12px;
-            border-radius:10px;
-            border:none;
-            margin-bottom:15px;
-        }
+input{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    margin-bottom:10px;
+}
 
-        button {
-            width:100%;
-            padding:14px;
-            border:none;
-            border-radius:10px;
-            background:#22c55e;
-            color:white;
-            font-weight:bold;
-        }
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#22c55e;
+    color:white;
+    font-weight:bold;
+    margin-top:5px;
+}
 
-        .status {
-            margin-top:15px;
-            font-size:14px;
-        }
-
-        /* 🔥 LOADING */
-        #loading{
-            position:fixed;
-            width:100%;
-            height:100%;
-            background:#0f172a;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            flex-direction:column;
-            z-index:9999;
-        }
-
-        #loading img{
-            width:80px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse{
-            0%{transform:scale(1);}
-            50%{transform:scale(1.1);}
-            100%{transform:scale(1);}
-        }
-    </style>
+.link{
+    margin-top:10px;
+    font-size:13px;
+    color:#9ca3af;
+    cursor:pointer;
+}
+</style>
 </head>
-<body>
 
-<!-- 🔥 LOADING -->
-<div id="loading">
-    <img src="https://i.imgur.com/kkjBM71.png">
-    <h2>ROTA SPEED</h2>
-    <p>Carregando Rotas Speed...</p>
-</div>
+<body>
 
 <div class="card">
 
-    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972185.png" width="60">
+<h1>ROTA SPEED</h1>
 
-    <h1>ROTA SPEED</h1>
-    <p>Rastreamento em tempo Real</p>
+<div id="loginBox">
+<input id="id" placeholder="ID">
+<input id="senha" type="password" placeholder="Senha">
+<button onclick="login()">ENTRAR</button>
 
-    <input id="id" placeholder="Seu ID">
+<div class="link" onclick="showRegister()">Criar conta</div>
+</div>
 
-    <button onclick="start()">ENTRAR</button>
+<div id="registerBox" style="display:none">
+<input id="rid" placeholder="Novo ID">
+<input id="rsenha" type="password" placeholder="Senha">
+<button onclick="register()">CADASTRAR</button>
 
-    <div class="status" id="status"></div>
+<div class="link" onclick="showLogin()">Voltar</div>
+</div>
+
+<div id="status"></div>
 
 </div>
 
@@ -102,35 +83,55 @@
 
 let watchId = null;
 
-// 🔁 AUTO LOGIN + LOADING
-window.onload = () => {
-
-    setTimeout(()=>{
-        document.getElementById("loading").style.display = "none";
-    },2000);
-
-    const saved = localStorage.getItem("motoboy_id");
-
-    if(saved){
-        document.getElementById("id").value = saved;
-        start();
-    }
-};
-
-function start(){
+// LOGIN
+async function login(){
 
     const id = document.getElementById("id").value;
+    const senha = document.getElementById("senha").value;
 
-    if(!id){
-        alert("Digite seu ID");
+    const res = await fetch('/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id,senha})
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+        alert(data.error);
         return;
     }
 
-    localStorage.setItem("motoboy_id", id);
+    localStorage.setItem("id", id);
 
-    if(watchId){
-        navigator.geolocation.clearWatch(watchId);
+    iniciarGPS(id);
+}
+
+// CADASTRO
+async function register(){
+
+    const id = document.getElementById("rid").value;
+    const senha = document.getElementById("rsenha").value;
+
+    const res = await fetch('/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({id,senha})
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+        alert(data.error);
+        return;
     }
+
+    alert("Conta criada!");
+    showLogin();
+}
+
+// GPS
+function iniciarGPS(id){
 
     watchId = navigator.geolocation.watchPosition((pos)=>{
 
@@ -138,21 +139,30 @@ function start(){
             method:'POST',
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({
-                id:id,
+                id,
                 lat:pos.coords.latitude,
                 lng:pos.coords.longitude
             })
         });
 
-        document.getElementById("status").innerHTML = "🟢 Online - Enviando localização";
+        document.getElementById("status").innerHTML = "🟢 Online";
 
     },()=>{
         document.getElementById("status").innerHTML = "❌ GPS negado";
     },{
         enableHighAccuracy:true
     });
+}
 
-    document.getElementById("status").innerHTML = "✅ Conectado";
+// UI
+function showRegister(){
+    loginBox.style.display="none";
+    registerBox.style.display="block";
+}
+
+function showLogin(){
+    loginBox.style.display="block";
+    registerBox.style.display="none";
 }
 
 </script>
