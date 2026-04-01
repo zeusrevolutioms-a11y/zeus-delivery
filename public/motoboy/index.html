@@ -8,15 +8,8 @@
 
 <style>
 
-/* RESET */
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
 
-/* FUNDO */
 body{
     height:100vh;
     background:linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)),
@@ -26,7 +19,6 @@ body{
     color:white;
 }
 
-/* CENTRALIZA */
 .screen{
     display:none;
     height:100vh;
@@ -36,18 +28,10 @@ body{
     padding:20px;
 }
 
-/* ATIVA */
-.active{
-    display:flex;
-}
+.active{display:flex;}
 
-/* LOGO */
-.logo{
-    width:120px;
-    margin-bottom:20px;
-}
+.logo{width:120px;margin-bottom:20px;}
 
-/* CARD */
 .card{
     width:100%;
     max-width:350px;
@@ -58,62 +42,37 @@ body{
     text-align:center;
 }
 
-/* INPUT */
 input{
     width:100%;
     padding:14px;
     margin:15px 0;
     border-radius:10px;
     border:none;
-    font-size:16px;
 }
 
-/* BOTÃO */
 button{
     width:100%;
     padding:15px;
     border:none;
     border-radius:12px;
-    background:#00c853;
-    color:white;
-    font-size:18px;
-    font-weight:bold;
-}
-
-/* TEXTO */
-h2{
-    margin-bottom:10px;
-}
-
-/* STATUS */
-.status{
-    margin-top:20px;
     font-size:16px;
+    font-weight:bold;
+    margin-top:10px;
 }
 
-/* LOADING */
-.loader{
-    border:5px solid #333;
-    border-top:5px solid #00c853;
-    border-radius:50%;
-    width:60px;
-    height:60px;
-    animation:spin 1s linear infinite;
-    margin-bottom:20px;
-}
+.green{background:#00c853;}
+.red{background:#d50000;}
+.blue{background:#2962ff;}
 
-@keyframes spin{
-    0%{ transform:rotate(0deg); }
-    100%{ transform:rotate(360deg); }
-}
+.status{margin-top:20px;}
 
 </style>
 </head>
 <body>
 
-<!-- 🔄 LOADING -->
+<!-- 🔄 LOADING COM LOGO -->
 <div id="loading" class="screen active">
-    <div class="loader"></div>
+    <img src="https://i.imgur.com/kkjBM71.png" style="width:120px;margin-bottom:20px;">
     <h2>Carregando sistema...</h2>
 </div>
 
@@ -121,7 +80,6 @@ h2{
 <div id="login" class="screen">
     <div class="card">
 
-        <!-- TROCA AQUI PELO SEU LOGO -->
         <img class="logo" src="https://i.imgur.com/Ce2wIT5.png">
 
         <h2>ROTA SPEED</h2>
@@ -129,12 +87,12 @@ h2{
 
         <input id="id" placeholder="Seu ID">
 
-        <button onclick="entrar()">🚀 Entrar</button>
+        <button class="green" onclick="entrar()">🚀 Entrar</button>
 
     </div>
 </div>
 
-<!-- 🏍️ RASTREAMENTO -->
+<!-- 🏍️ APP -->
 <div id="app" class="screen">
     <div class="card">
 
@@ -143,18 +101,21 @@ h2{
 
         <div class="status" id="status">Iniciando...</div>
 
-        <button onclick="parar()" style="background:#d50000;margin-top:20px;">
-            ⛔ Parar Rota
-        </button>
+        <button class="blue" onclick="cheguei()">📍 Cheguei</button>
+        <button class="green" onclick="finalizar()">✅ Finalizar</button>
+        <button class="red" onclick="parar()">⛔ Parar Rota</button>
 
     </div>
 </div>
+
+<!-- 🔊 SOM -->
+<audio id="som" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 
 <script>
 
 let watchId = null;
 
-/* 🔄 LOADING INICIAL */
+/* LOADING */
 setTimeout(()=>{
     document.getElementById("loading").classList.remove("active");
     document.getElementById("login").classList.add("active");
@@ -163,10 +124,9 @@ setTimeout(()=>{
     if(saved){
         document.getElementById("id").value = saved;
     }
-
 },2000);
 
-/* 🔐 LOGIN */
+/* LOGIN */
 function entrar(){
 
     const id = document.getElementById("id").value;
@@ -184,7 +144,7 @@ function entrar(){
     iniciarRastreamento(id);
 }
 
-/* 📡 RASTREAMENTO */
+/* RASTREAMENTO */
 function iniciarRastreamento(id){
 
     if(watchId){
@@ -216,7 +176,23 @@ function iniciarRastreamento(id){
     "✅ Rastreamento ativo";
 }
 
-/* ⛔ PARAR */
+/* NOVAS AÇÕES (SEM QUEBRAR NADA) */
+
+function tocar(){
+    document.getElementById("som").play();
+}
+
+function cheguei(){
+    document.getElementById("status").innerHTML = "📍 Chegou no local";
+    tocar();
+}
+
+function finalizar(){
+    document.getElementById("status").innerHTML = "✅ Entrega finalizada";
+    tocar();
+}
+
+/* PARAR */
 function parar(){
 
     if(watchId){
