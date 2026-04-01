@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Painel</title>
+    <title>ROTA SPEED - Painel</title>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
     <style>
-        body { font-family: Arial; }
-        #map { height: 500px; }
+        body { font-family: Arial; margin:0; }
 
         #topbar {
             padding: 10px;
@@ -14,123 +14,121 @@
             color: white;
         }
 
-        input {
-            padding: 5px;
-            margin-right: 5px;
-        }
+        #map { height: 500px; }
 
-        button {
-            padding: 6px;
-            cursor: pointer;
-        }
+        input { padding:5px; }
+        button { padding:6px; }
 
         #list {
-            margin-top: 10px;
+            background:#f4f4f4;
+            padding:10px;
         }
 
         .item {
-            background: #eee;
-            padding: 5px;
-            margin: 3px;
-            cursor: pointer;
+            padding:8px;
+            margin:5px;
+            background:white;
+            cursor:pointer;
+            border-radius:5px;
         }
+
+        .online { color: green; }
+        .offline { color: red; }
     </style>
 </head>
 <body>
 
 <div id="topbar">
-    🔎 Buscar motoboy:
-    <input id="search" placeholder="ID">
+    🚀 ROTA SPEED | 🔎 Buscar:
+    <input id="search">
     <button onclick="buscar()">Buscar</button>
 </div>
 
 <div id="map"></div>
-
 <div id="list"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-// 📍 Rio Preto
 const map = L.map('map').setView([-20.8113, -49.3758], 13);
 
-// 🌍 mapa
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// 🏍️ ícone
 const motoIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
-    iconSize: [40, 40]
+    iconSize: [40,40]
 });
 
 let markers = {};
-let dadosAtuais = {};
 
-// 🔎 buscar motoboy
-function buscar() {
+// 🔎 buscar
+function buscar(){
     const id = document.getElementById("search").value;
 
-    if (markers[id]) {
-        map.setView(markers[id].getLatLng(), 17);
+    if(markers[id]){
+        map.setView(markers[id].getLatLng(),17);
         markers[id].openPopup();
-    } else {
-        alert("Motoboy não encontrado");
     }
 }
 
 // 📍 endereço
-async function getEndereco(lat, lng) {
-    try {
+async function getEndereco(lat,lng){
+    try{
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
         const data = await res.json();
         return data.display_name;
-    } catch {
+    }catch{
         return "Endereço não encontrado";
     }
 }
 
 // 🔄 atualizar
-setInterval(async () => {
+setInterval(async()=>{
 
-    const res = await fetch('/motoboys'); // 👈 corrigido
+    const res = await fetch('/motoboys');
     const data = await res.json();
 
-    dadosAtuais = data;
+    let lista = "";
 
-    let listaHTML = "";
+    for(let id in data){
 
-    for (let id in data) {
-        const { lat, lng } = data[id];
+        const {lat,lng,updated_at} = data[id];
 
-        listaHTML += `<div class="item" onclick="focar('${id}')">🏍️ Motoboy ${id}</div>`;
+        const online = (Date.now() - new Date(updated_at)) < 10000;
 
-        if (!markers[id]) {
+        lista += `
+        <div class="item" onclick="focar('${id}')">
+            🏍️ ${id} - 
+            <span class="${online?'online':'offline'}">
+                ${online?'ONLINE':'OFFLINE'}
+            </span>
+        </div>`;
 
-            const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
+        if(!markers[id]){
+            const marker = L.marker([lat,lng],{icon:motoIcon}).addTo(map);
 
-            const endereco = await getEndereco(lat, lng);
+            const endereco = await getEndereco(lat,lng);
 
             marker.bindPopup(`
-                🏍️ Motoboy: ${id} <br>
+                🏍️ Motoboy: ${id}<br>
                 📍 ${endereco}
             `);
 
             markers[id] = marker;
-
-        } else {
-            markers[id].setLatLng([lat, lng]);
+        }else{
+            markers[id].setLatLng([lat,lng]);
         }
     }
 
-    document.getElementById("list").innerHTML = listaHTML;
+    document.getElementById("list").innerHTML = lista;
 
-}, 3000);
+},3000);
 
 // 🎯 focar
-function focar(id) {
-    if (markers[id]) {
-        map.setView(markers[id].getLatLng(), 17);
+function focar(id){
+    if(markers[id]){
+        map.setView(markers[id].getLatLng(),17);
         markers[id].openPopup();
     }
 }
