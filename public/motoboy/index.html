@@ -1,39 +1,216 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Motoboy</title>
+<meta charset="UTF-8">
+<title>Motoboy App</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background:#0f172a;
+    color:white;
+}
+
+/* LOADING */
+#loading {
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:#0f172a;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+.logo {
+    width:120px;
+    animation: float 2s infinite ease-in-out;
+}
+
+@keyframes float {
+    0%{transform:translateY(0)}
+    50%{transform:translateY(-10px)}
+    100%{transform:translateY(0)}
+}
+
+/* BOX */
+.box {
+    display:none;
+    padding:20px;
+}
+
+input {
+    width:100%;
+    padding:12px;
+    margin:5px 0;
+    border:none;
+    border-radius:8px;
+}
+
+button {
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    background:#22c55e;
+    border:none;
+    border-radius:8px;
+    color:white;
+    font-weight:bold;
+}
+
+/* NOTIFY */
+.notify {
+    position:fixed;
+    top:20px;
+    right:20px;
+    background:#22c55e;
+    padding:15px;
+    border-radius:10px;
+    display:none;
+}
+</style>
+
 </head>
 <body>
 
-<h2>🏍️ Rastreamento Ativo</h2>
+<!-- 🔄 LOADING -->
+<div id="loading">
+    <img src="https://i.imgur.com/yourlogo.png" class="logo">
+    <p>Carregando sistema...</p>
+</div>
 
-<button onclick="start()">Iniciar Rastreamento</button>
+<!-- 🔐 LOGIN -->
+<div id="login" class="box">
+    <h2>Login</h2>
+    <input id="tel" placeholder="Telefone">
+    <input id="senha" type="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+    <p onclick="showRegister()">Criar conta</p>
+</div>
+
+<!-- 🧾 CADASTRO -->
+<div id="register" class="box">
+    <h2>Cadastro</h2>
+    <input id="nome" placeholder="Nome">
+    <input id="sobrenome" placeholder="Sobrenome">
+    <input id="tel2" placeholder="Telefone">
+    <input id="senha2" type="password" placeholder="Senha">
+    <button onclick="register()">Cadastrar</button>
+</div>
+
+<!-- 📡 APP -->
+<div id="app" class="box">
+    <h2 id="userName"></h2>
+    <button onclick="start()">Iniciar Rota</button>
+</div>
+
+<div class="notify" id="notify"></div>
+
+<audio id="click" src="https://www.myinstants.com/media/sounds/click.mp3"></audio>
 
 <script>
-let id = null;
+let user = null;
 
-function start() {
-    id = prompt("Digite seu ID:");
+// 🔊 Som
+function play() {
+    document.getElementById('click').play();
+}
 
-    navigator.geolocation.watchPosition((pos) => {
+// 🔔 Notify
+function notify(msg) {
+    let n = document.getElementById('notify');
+    n.innerText = msg;
+    n.style.display = 'block';
 
-        fetch('/location', { // 👈 corrigido
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: id,
+    setTimeout(()=> n.style.display='none',3000);
+}
+
+// 🔄 Loading
+setTimeout(()=>{
+    document.getElementById('loading').style.display='none';
+    document.getElementById('login').style.display='block';
+}, 2500);
+
+// 🔁 Telas
+function showRegister(){
+    play();
+    document.getElementById('login').style.display='none';
+    document.getElementById('register').style.display='block';
+}
+
+// 🧾 Cadastro
+async function register(){
+    play();
+
+    let res = await fetch('/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            nome: nome.value,
+            sobrenome: sobrenome.value,
+            telefone: tel2.value,
+            senha: senha2.value
+        })
+    });
+
+    let data = await res.json();
+
+    if(data.error) return notify(data.error);
+
+    notify('Conta criada!');
+    location.reload();
+}
+
+// 🔐 Login
+async function login(){
+    play();
+
+    let res = await fetch('/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+            telefone: tel.value,
+            senha: senha.value
+        })
+    });
+
+    let data = await res.json();
+
+    if(data.error) return notify(data.error);
+
+    user = data.user;
+
+    document.getElementById('login').style.display='none';
+    document.getElementById('app').style.display='block';
+
+    document.getElementById('userName').innerText =
+        user.nome + " " + user.sobrenome;
+
+    notify('Bem vindo!');
+}
+
+// 📍 GPS
+function start(){
+    play();
+
+    navigator.geolocation.watchPosition((pos)=>{
+
+        fetch('/location',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                id: user.id,
+                nome: user.nome,
                 lat: pos.coords.latitude,
                 lng: pos.coords.longitude
             })
         });
 
-    }, (err) => {
-        alert("Erro no GPS: " + err.message);
-    }, {
-        enableHighAccuracy: true
     });
 
-    alert("Rastreamento iniciado 🚀");
+    notify('Rota iniciada 🚀');
 }
 </script>
 
