@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>ROTA SPEED</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
@@ -24,17 +23,7 @@
             width:90%;
             max-width:350px;
             text-align:center;
-            box-shadow:0 0 20px rgba(0,0,0,0.5);
-        }
-
-        h1 {
-            margin-bottom:10px;
-        }
-
-        p {
-            font-size:14px;
-            color:#9ca3af;
-            margin-bottom:20px;
+            box-shadow:0 0 25px rgba(0,0,0,0.6);
         }
 
         input {
@@ -43,7 +32,6 @@
             border-radius:10px;
             border:none;
             margin-bottom:15px;
-            font-size:16px;
         }
 
         button {
@@ -53,7 +41,6 @@
             border-radius:10px;
             background:#22c55e;
             color:white;
-            font-size:16px;
             font-weight:bold;
         }
 
@@ -62,22 +49,48 @@
             font-size:14px;
         }
 
-        .logo {
-            font-size:40px;
-            margin-bottom:10px;
+        /* 🔥 LOADING */
+        #loading{
+            position:fixed;
+            width:100%;
+            height:100%;
+            background:#0f172a;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            flex-direction:column;
+            z-index:9999;
+        }
+
+        #loading img{
+            width:80px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse{
+            0%{transform:scale(1);}
+            50%{transform:scale(1.1);}
+            100%{transform:scale(1);}
         }
     </style>
 </head>
 <body>
 
+<!-- 🔥 LOADING -->
+<div id="loading">
+    <img src="https://i.imgur.com/kkjBM71.png">
+    <h2>ROTA SPEED</h2>
+    <p>Carregando Rotas Speed...</p>
+</div>
+
 <div class="card">
 
-    <div class="logo">🏍️</div>
+    <img src="https://cdn-icons-png.flaticon.com/512/2972/2972185.png" width="60">
 
     <h1>ROTA SPEED</h1>
-    <p>Rastreamento em tempo real</p>
+    <p>Rastreamento em tempo Real</p>
 
-    <input id="id" placeholder="Digite seu ID">
+    <input id="id" placeholder="Seu ID">
 
     <button onclick="start()">ENTRAR</button>
 
@@ -89,13 +102,18 @@
 
 let watchId = null;
 
-// 🔁 AUTO LOGIN
+// 🔁 AUTO LOGIN + LOADING
 window.onload = () => {
+
+    setTimeout(()=>{
+        document.getElementById("loading").style.display = "none";
+    },2000);
+
     const saved = localStorage.getItem("motoboy_id");
 
     if(saved){
         document.getElementById("id").value = saved;
-        start(); // entra automático
+        start();
     }
 };
 
@@ -126,9 +144,9 @@ function start(){
             })
         });
 
-        document.getElementById("status").innerHTML = "📡 Enviando localização...";
+        document.getElementById("status").innerHTML = "🟢 Online - Enviando localização";
 
-    },(err)=>{
+    },()=>{
         document.getElementById("status").innerHTML = "❌ GPS negado";
     },{
         enableHighAccuracy:true
