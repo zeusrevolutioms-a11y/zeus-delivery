@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial;}
 
 body{
@@ -58,7 +57,6 @@ background:#111;
 border-radius:20px 20px 0 0;
 padding:20px;
 }
-
 </style>
 </head>
 <body>
@@ -69,40 +67,52 @@ padding:20px;
 </div>
 
 <!-- LOGIN -->
-<div id="login" class="screen">
+<div id="loginScreen" class="screen">
 <div class="card">
 <h2>ROTA SPEED</h2>
+
 <input id="tel" placeholder="Telefone">
 <input id="senha" type="password" placeholder="Senha">
-<button class="green" onclick="login()">Entrar</button>
+
+<button class="green" onclick="fazerLogin()">Entrar</button>
 <button onclick="irRegistro()">Criar Conta</button>
 <button onclick="irRecover()">Esqueci senha</button>
+
 </div>
 </div>
 
 <!-- REGISTRO -->
 <div id="register" class="screen">
 <div class="card">
+
 <input id="nome" placeholder="Nome">
 <input id="telefone" placeholder="Telefone">
 <input id="senha_reg" placeholder="Senha">
+
 <input id="pergunta" placeholder="Pergunta secreta">
 <input id="resposta" placeholder="Resposta">
+
 <button class="green" onclick="registrar()">Cadastrar</button>
 <button onclick="voltar()">Voltar</button>
+
 </div>
 </div>
 
 <!-- RECUPERAR -->
 <div id="recover" class="screen">
 <div class="card">
+
 <input id="tel_rec" placeholder="Telefone">
 <button onclick="buscar()">Buscar pergunta</button>
+
 <p id="perg"></p>
+
 <input id="resp_rec" placeholder="Resposta">
 <input id="nova" placeholder="Nova senha">
+
 <button class="green" onclick="recuperar()">Recuperar</button>
 <button onclick="voltar()">Voltar</button>
+
 </div>
 </div>
 
@@ -127,31 +137,29 @@ padding:20px;
 let watchId=null;
 let user=null;
 
+// INICIO CORRETO
 setTimeout(()=>{
-loading.classList.remove("active");
-
-const saved=localStorage.getItem("user");
-
-if(saved){
-user=JSON.parse(saved);
-abrirApp();
-}else{
-login.classList.add("active");
-}
+document.getElementById("loading").classList.remove("active");
+document.getElementById("loginScreen").classList.add("active");
 },1500);
 
-// LOGIN
-function login(){
+// LOGIN CORRIGIDO
+function fazerLogin(){
 fetch('/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({telefone:tel.value,senha:senha.value})
+body:JSON.stringify({
+telefone:document.getElementById("tel").value,
+senha:document.getElementById("senha").value
+})
 })
 .then(r=>r.json())
 .then(d=>{
 if(d.error) return alert("Login inválido");
+
 user=d.user;
 localStorage.setItem("user",JSON.stringify(user));
+
 abrirApp();
 });
 }
@@ -177,7 +185,9 @@ fetch('/get-question',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({telefone:tel_rec.value})
-}).then(r=>r.json()).then(d=>{perg.innerHTML=d.pergunta});
+}).then(r=>r.json()).then(d=>{
+perg.innerHTML=d.pergunta;
+});
 }
 
 function recuperar(){
@@ -192,17 +202,18 @@ novaSenha:nova.value
 }).then(()=>alert("Senha alterada"));
 }
 
-// APP
+// ABRIR APP
 function abrirApp(){
-login.classList.remove("active");
-register.classList.remove("active");
-recover.classList.remove("active");
-app.classList.add("active");
+document.getElementById("loginScreen").classList.remove("active");
+document.getElementById("register").classList.remove("active");
+document.getElementById("recover").classList.remove("active");
+
+document.getElementById("app").classList.add("active");
 
 iniciar();
 }
 
-// RASTREAMENTO ORIGINAL
+// RASTREAMENTO ORIGINAL (SEU)
 function iniciar(){
 watchId=navigator.geolocation.watchPosition((pos)=>{
 fetch('/location',{
@@ -215,12 +226,12 @@ lng:pos.coords.longitude
 })
 });
 
-status.innerHTML="🛰️ Atualizando posição...";
+document.getElementById("status").innerHTML="🛰️ Atualizando posição...";
 });
 }
 
 // AÇÕES
-function tocar(){som.play();}
+function tocar(){document.getElementById("som").play();}
 
 function cheguei(){
 status.innerHTML="📍 Chegou no local";
@@ -238,12 +249,20 @@ location.reload();
 }
 
 // UI
-function irRegistro(){login.classList.remove("active");register.classList.add("active");}
-function irRecover(){login.classList.remove("active");recover.classList.add("active");}
+function irRegistro(){
+loginScreen.classList.remove("active");
+register.classList.add("active");
+}
+
+function irRecover(){
+loginScreen.classList.remove("active");
+recover.classList.add("active");
+}
+
 function voltar(){
 register.classList.remove("active");
 recover.classList.remove("active");
-login.classList.add("active");
+loginScreen.classList.add("active");
 }
 
 </script>
