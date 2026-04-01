@@ -31,7 +31,7 @@
             padding:12px;
             border-radius:10px;
             border:none;
-            margin-bottom:15px;
+            margin-bottom:10px;
         }
 
         button {
@@ -42,6 +42,11 @@
             background:#22c55e;
             color:white;
             font-weight:bold;
+            margin-top:5px;
+        }
+
+        .btn-sec {
+            background:#374151;
         }
 
         .status {
@@ -78,7 +83,7 @@
 
 <!-- 🔥 LOADING -->
 <div id="loading">
-    <img src="https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png?ex=69ce95e1&is=69cd4461&hm=663dcfd59780f33b4bb8014562223687ca1826710168102d87457a09dd2b704a&=&format=webp&quality=lossless&width=814&height=543">
+    <img src="https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png">
     <h2>ROTA SPEED</h2>
     <p>Carregando Rotas...</p>
 </div>
@@ -91,8 +96,10 @@
     <p>Rastreamento em tempo Real</p>
 
     <input id="id" placeholder="Seu ID">
+    <input id="senha" type="password" placeholder="Senha">
 
-    <button onclick="start()">ENTRAR</button>
+    <button onclick="login()">ENTRAR</button>
+    <button class="btn-sec" onclick="register()">CRIAR CONTA</button>
 
     <div class="status" id="status"></div>
 
@@ -113,20 +120,73 @@ window.onload = () => {
 
     if(saved){
         document.getElementById("id").value = saved;
-        start();
     }
 };
 
-function start(){
+// =====================
+// 🔐 LOGIN
+// =====================
+async function login(){
 
     const id = document.getElementById("id").value;
+    const senha = document.getElementById("senha").value;
 
-    if(!id){
-        alert("Digite seu ID");
+    if(!id || !senha){
+        alert("Preencha tudo");
+        return;
+    }
+
+    const res = await fetch('/login',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id, senha })
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+        alert(data.error);
         return;
     }
 
     localStorage.setItem("motoboy_id", id);
+
+    startTracking(id);
+}
+
+// =====================
+// 🧑‍💻 CADASTRO
+// =====================
+async function register(){
+
+    const id = document.getElementById("id").value;
+    const senha = document.getElementById("senha").value;
+
+    if(!id || !senha){
+        alert("Preencha tudo");
+        return;
+    }
+
+    const res = await fetch('/register',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id, senha })
+    });
+
+    const data = await res.json();
+
+    if(data.error){
+        alert(data.error);
+        return;
+    }
+
+    alert("Conta criada com sucesso 🚀");
+}
+
+// =====================
+// 📡 TRACKING
+// =====================
+function startTracking(id){
 
     if(watchId){
         navigator.geolocation.clearWatch(watchId);
