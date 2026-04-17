@@ -329,7 +329,12 @@ for(let id in data){
 
 const m = data[id];
 
-// só mostra online na lista
+// endereço sempre pega
+const end = await endereco(m.lat,m.lng);
+
+// ===============================
+// LISTA: só online
+// ===============================
 if(m.online){
 
 html += `
@@ -339,11 +344,11 @@ html += `
 </div>
 `;
 
+}
 
-
-const end = await endereco(m.lat,m.lng);
-
-// marker novo
+// ===============================
+// MARKER
+// ===============================
 if(!markers[id]){
 
 markers[id] = L.marker([m.lat,m.lng],{
@@ -360,9 +365,9 @@ mover(markers[id],m.lat,m.lng,id);
 
 }
 
-// =========================================================
-// POPUP IGUAL PRINT ANTIGA
-// =========================================================
+// ===============================
+// POPUP
+// ===============================
 const popupHtml = `
 🏍️ Motoboy: ${id} <br>
 📍 ${end} <br>
@@ -374,6 +379,7 @@ markers[id].setPopupContent(popupHtml);
 
 }
 
+// atualiza lista final
 document.getElementById("list").innerHTML = html;
 
 }
