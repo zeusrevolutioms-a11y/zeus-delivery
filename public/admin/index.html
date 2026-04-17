@@ -134,6 +134,20 @@ overflow:auto;
 z-index:999;
 }
 
+#list::-webkit-scrollbar{
+width:8px;
+}
+
+#list::-webkit-scrollbar-track{
+background:#111827;
+border-radius:10px;
+}
+
+#list::-webkit-scrollbar-thumb{
+background:#22c55e;
+border-radius:10px;
+}
+
 .item{
 background:#111827ee;
 padding:12px;
@@ -315,12 +329,17 @@ for(let id in data){
 
 const m = data[id];
 
+// só mostra online na lista
+if(m.online){
+
 html += `
 <div class="item" onclick="focar('${id}')">
 🏍️ ${id}<br>
-${m.online ? '🟢 Online':'🔴 Offline'}
+🟢 Online
 </div>
 `;
+
+
 
 const end = await endereco(m.lat,m.lng);
 
