@@ -123,6 +123,40 @@ height:calc(100vh - 80px);
 width:100%;
 }
 
+
+#pedidosBox{
+position:fixed;
+top:90px;
+left:20px;
+width:320px;
+background:#111827;
+padding:20px;
+border-radius:15px;
+z-index:9999;
+display:none;
+box-shadow:0 0 20px rgba(0,0,0,.5);
+}
+
+#pedidosBox h2{
+margin-bottom:15px;
+font-size:22px;
+}
+
+#pedidosBox input,
+#pedidosBox select{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border:none;
+border-radius:10px;
+}
+
+#pedidosBox button{
+width:100%;
+margin-top:8px;
+}
+
+
 /* LISTA */
 #list{
 position:absolute;
@@ -184,7 +218,7 @@ background:#1f2937;
 
 <button class="menu-btn">🏠 Início</button>
 <button class="menu-btn">🏍️ Entregadores</button>
-<button class="menu-btn">📦 Pedidos</button>
+<button class="menu-btn" onclick="abrirPedidos()">📦 Pedidos</button>
 <button class="menu-btn">📊 Relatórios</button>
 <button class="menu-btn">⚙️ Config</button>
 
@@ -198,6 +232,28 @@ background:#1f2937;
 
 <!-- LISTA -->
 <div id="list"></div>
+
+
+<!-- PEDIDOS -->
+<div id="pedidosBox">
+
+<h2>📦 Novo Pedido</h2>
+
+<input id="pedido_codigo" placeholder="Código Pedido">
+<input id="pedido_cliente" placeholder="Nome Cliente">
+<input id="pedido_rua" placeholder="Rua e Número">
+<input id="pedido_bairro" placeholder="Bairro">
+<input id="pedido_taxa" placeholder="Taxa Ex: 8.00">
+
+<select id="pedido_motoboy">
+<option value="">Selecionar entregador</option>
+</select>
+
+<button onclick="salvarPedido()">🚀 Disparar Pedido</button>
+<button onclick="fecharPedidos()">Fechar</button>
+
+</div>
+
 
 <div id="footer">
 <span id="frase">Conectando lojas e entregadores em tempo real</span>
@@ -364,6 +420,53 @@ this.openPopup();
 mover(markers[id],m.lat,m.lng,id);
 
 }
+
+
+// PEDIDOS
+function abrirPedidos(){
+document.getElementById("pedidosBox").style.display="block";
+carregarMotoboys();
+}
+
+function fecharPedidos(){
+document.getElementById("pedidosBox").style.display="none";
+}
+
+function carregarMotoboys(){
+
+let html = '<option value="">Selecionar entregador</option>';
+
+for(let id in markers){
+html += `<option value="${id}">${id}</option>`;
+}
+
+document.getElementById("pedido_motoboy").innerHTML = html;
+
+}
+
+async function salvarPedido(){
+
+const pedido = {
+codigo: document.getElementById("pedido_codigo").value,
+cliente: document.getElementById("pedido_cliente").value,
+rua: document.getElementById("pedido_rua").value,
+bairro: document.getElementById("pedido_bairro").value,
+taxa: document.getElementById("pedido_taxa").value,
+motoboy: document.getElementById("pedido_motoboy").value
+};
+
+alert(
+"Pedido enviado!\n\n" +
+"Pedido: " + pedido.codigo + "\n" +
+"Cliente: " + pedido.cliente + "\n" +
+"Motoboy: " + pedido.motoboy
+);
+
+fecharPedidos();
+
+}
+
+
 
 // ===============================
 // POPUP
