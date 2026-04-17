@@ -635,42 +635,87 @@ return R * c;
 
 
 // =========================================================
-// 🚚 ABRIR ROTAS
+// 🚚 ABRIR CENTRAL ROTAS
 // =========================================================
 async function abrirRotas(){
 
-document.getElementById("rotasBox").style.display = "block";
+const box = document.getElementById("rotasBox");
+
+box.style.display = "block";
+
+box.innerHTML = `
+<h2 style="margin-bottom:15px;">🚚 Central de Rotas</h2>
+<p>Carregando pedidos...</p>
+<br>
+<button onclick="fecharRotas()">Fechar</button>
+`;
+
+try{
 
 const r = await fetch('/pedidos');
 const data = await r.json();
 
-let html = "<h2>🚚 Central de Rotas</h2><br>";
+let html = `
+<h2 style="margin-bottom:15px;">🚚 Central de Rotas</h2>
+`;
 
-data.forEach(p=>{
-
-let status = "🟡 " + p.status;
-
-if(p.status=="aceito") status="🟢 Aceito";
-if(p.status=="rota") status="🚚 Em rota";
-if(p.status=="finalizado") status="✅ Finalizado";
-if(p.status=="recusado") status="🔴 Recusado";
+if(!data || data.length === 0){
 
 html += `
 <div class="pedidoItem">
-<b>Pedido:</b> ${p.codigo}<br>
-👤 ${p.cliente}<br>
-📍 ${p.rua}<br>
-🏍️ ${p.motoboy}<br>
-💰 Taxa R$ ${p.taxa}<br>
+Nenhum pedido enviado ainda.
+</div>
+`;
+
+}else{
+
+data.forEach(p=>{
+
+let status = "🟡 Aguardando";
+
+if(p.status == "aceito") status = "🟢 Aceito";
+if(p.status == "rota") status = "🚚 Em rota";
+if(p.status == "finalizado") status = "✅ Finalizado";
+if(p.status == "recusado") status = "🔴 Recusado";
+
+html += `
+<div class="pedidoItem">
+<b>Pedido:</b> ${p.codigo || '-'}<br>
+👤 Cliente: ${p.cliente || '-'}<br>
+📍 Rua: ${p.rua || '-'}<br>
+🏍️ Motoboy: ${p.motoboy || '-'}<br>
+💰 Taxa: R$ ${p.taxa || '0'}<br>
 ${status}
 </div>
 `;
 
 });
 
-html += `<br><button onclick="fecharRotas()">Fechar</button>`;
+}
 
-document.getElementById("rotasBox").innerHTML = html;
+html += `
+<button onclick="fecharRotas()" style="width:100%;margin-top:10px;">
+Fechar
+</button>
+`;
+
+box.innerHTML = html;
+
+}catch(e){
+
+box.innerHTML = `
+<h2>🚚 Central de Rotas</h2>
+
+<div class="pedidoItem">
+Erro ao carregar pedidos.
+</div>
+
+<button onclick="fecharRotas()" style="width:100%;margin-top:10px;">
+Fechar
+</button>
+`;
+
+}
 
 }
 
