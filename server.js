@@ -1,3 +1,7 @@
+// =========================================================
+// 🚀 SERVER NODEJS MYSQL COMPLETO
+// 📌 Arquivo: server.js
+// =========================================================
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
@@ -8,134 +12,147 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
-// ================================
-// 🧠 CRIAR TABELAS AUTOMÁTICO (MYSQL)
-// ================================
-(async () => {
-    try {
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id VARCHAR(50) PRIMARY KEY,
-                senha VARCHAR(255)
-            )
-        `);
+// =========================================================
+// 📦 TABELAS
+// =========================================================
+(async()=>{
 
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS motoboys (
-                id VARCHAR(50) PRIMARY KEY,
-                lat DOUBLE,
-                lng DOUBLE,
-                updated BIGINT
-            )
-        `);
+await db.query(`
+CREATE TABLE IF NOT EXISTS usuarios(
+    id VARCHAR(50) PRIMARY KEY,
+    senha VARCHAR(255)
+)
+`);
 
-        console.log('📦 Tabelas prontas');
+await db.query(`
+CREATE TABLE IF NOT EXISTS motoboys(
+    id VARCHAR(50) PRIMARY KEY,
+    lat DOUBLE,
+    lng DOUBLE,
+    online INT DEFAULT 0,
+    updated BIGINT
+)
+`);
 
-    } catch (err) {
-        console.log(err);
-    }
+console.log("📦 Banco pronto");
+
 })();
 
-// ================================
-// 🧑‍💻 CADASTRO
-// ================================
-app.post('/register', async (req, res) => {
-    const { id, senha } = req.body;
+// =========================================================
+// 🧑‍💻 REGISTRO
+// =========================================================
+app.post('/register', async(req,res)=>{
 
-    try {
-        const [rows] = await db.query("SELECT * FROM usuarios WHERE id = ?", [id]);
+const { id, senha } = req.body;
 
-        if (rows.length > 0) {
-            return res.send({ error: "ID já existe" });
-        }
+const [rows] = await db.query(
+"SELECT * FROM usuarios WHERE id=?",[id]
+);
 
-        await db.query("INSERT INTO usuarios (id, senha) VALUES (?, ?)", [id, senha]);
+if(rows.length > 0){
+    return res.send({error:"ID já existe"});
+}
 
-        res.send({ status: "ok" });
+await db.query(
+"INSERT INTO usuarios(id,senha) VALUES(?,?)",
+[id,senha]
+);
 
-    } catch (err) {
-        console.log(err);
-        res.send({ error: "Erro no servidor" });
-    }
+res.send({status:"ok"});
+
 });
 
-// ================================
+// =========================================================
 // 🔐 LOGIN
-// ================================
-app.post('/login', async (req, res) => {
-    const { id, senha } = req.body;
+// =========================================================
+app.post('/login', async(req,res)=>{
 
-    try {
-        const [rows] = await db.query("SELECT * FROM usuarios WHERE id = ?", [id]);
+const { id, senha } = req.body;
 
-        const user = rows[0];
+const [rows] = await db.query(
+"SELECT * FROM usuarios WHERE id=?",[id]
+);
 
-        if (!user || user.senha !== senha) {
-            return res.send({ error: "Login inválido" });
-        }
+if(rows.length <= 0){
+    return res.send({error:"Usuário não existe"});
+}
 
-        res.send({ status: "ok" });
+if(rows[0].senha !== senha){
+    return res.send({error:"Senha inválida"});
+}
 
-    } catch (err) {
-        console.log(err);
-        res.send({ error: "Erro no servidor" });
-    }
+res.send({status:"ok"});
+
 });
 
-// ================================
-// 📍 LOCALIZAÇÃO
-// ================================
-app.post('/location', async (req, res) => {
-    const { id, lat, lng } = req.body;
+// =========================================================
+// 📍 RECEBER LOCALIZAÇÃO
+// =========================================================
+app.post('/location', async(req,res)=>{
 
-    try {
-        await db.query(`
-            INSERT INTO motoboys (id, lat, lng, updated)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-            lat = VALUES(lat),
-            lng = VALUES(lng),
-            updated = VALUES(updated)
-        `, [id, lat, lng, Date.now()]);
+const { id, lat, lng } = req.body;
 
-        res.send({ status: 'ok' });
+await db.query(`
+INSERT INTO motoboys(id,lat,lng,online,updated)
+VALUES(?,?,?,?,?)
+ON DUPLICATE KEY UPDATE
+lat=?,
+lng=?,
+online=1,
+updated=?
+`,[
+id,lat,lng,1,Date.now(),
+lat,lng,Date.now()
+]);
 
-    } catch (err) {
-        console.log(err);
-        res.send({ error: "Erro ao salvar localização" });
-    }
+res.send({status:"ok"});
+
 });
 
-// ================================
-// 📡 LISTAR MOTOBOYS
-// ================================
-app.get('/motoboys', async (req, res) => {
+// =========================================================
+// 🔴 SAIR DE SERVIÇO
+// =========================================================
+app.post('/offline', async(req,res)=>{
 
-    try {
-        const [rows] = await db.query("SELECT * FROM motoboys");
+const { id } = req.body;
 
-        const agora = Date.now();
-        let resposta = {};
+await db.query(
+"UPDATE motoboys SET online=0 WHERE id=?",
+[id]
+);
 
-        rows.forEach(m => {
-            const online = (agora - m.updated) < 10000;
+res.send({status:"ok"});
 
-            resposta[m.id] = {
-                lat: m.lat,
-                lng: m.lng,
-                online
-            };
-        });
-
-        res.send(resposta);
-
-    } catch (err) {
-        console.log(err);
-        res.send({ error: "Erro ao listar" });
-    }
 });
 
-// ================================
-app.listen(process.env.PORT || 3000, () => {
-    console.log('🔥 SERVER MYSQL RODANDO');
+// =========================================================
+// 📡 LISTAR
+// =========================================================
+app.get('/motoboys', async(req,res)=>{
+
+const [rows] = await db.query(
+"SELECT * FROM motoboys"
+);
+
+let resposta = {};
+
+rows.forEach(m=>{
+
+resposta[m.id] = {
+    lat:m.lat,
+    lng:m.lng,
+    online:m.online == 1
+};
+
+});
+
+res.send(resposta);
+
+});
+
+// =========================================================
+// 🚀 START
+// =========================================================
+app.listen(process.env.PORT || 3000,()=>{
+console.log("🔥 Servidor online");
 });
