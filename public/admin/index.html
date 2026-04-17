@@ -245,6 +245,42 @@ margin-bottom:10px;
 font-size:14px;
 line-height:1.5;
 }
+
+
+#rotasBox{
+position:fixed;
+top:90px;
+left:20px;
+right:20px;
+bottom:40px;
+background:#111827;
+border-radius:15px;
+padding:20px;
+display:none;
+overflow-y:auto;
+z-index:9999;
+box-shadow:0 0 25px rgba(0,0,0,.5);
+}
+
+#rotasBox::-webkit-scrollbar{
+width:8px;
+}
+
+#rotasBox::-webkit-scrollbar-thumb{
+background:#22c55e;
+border-radius:10px;
+}
+
+.pedidoItem{
+background:#1f2937;
+padding:14px;
+margin-bottom:10px;
+border-radius:12px;
+font-size:15px;
+line-height:1.6;
+}
+
+
 </style>
 </head>
 <body>
@@ -272,6 +308,7 @@ line-height:1.5;
 <button class="menu-btn" onclick="abrirPedidos()">📦 Pedidos</button>
 <button class="menu-btn">📊 Relatórios</button>
 <button class="menu-btn">⚙️ Config</button>
+<button class="menu-btn" onclick="abrirRotas()">🚚 Rotas</button>
 
 </div>
 </div>
@@ -288,7 +325,10 @@ line-height:1.5;
 <!-- PEDIDOS -->
 <div id="pedidosBox">
 
-
+<!-- ========================================================= -->
+<!-- 📋 LISTA PEDIDOS ENVIADOS -->
+<!-- ========================================================= -->
+<div id="listaPedidosBox"></div>
 
 <h2>📦 Novo Pedido</h2>
 
@@ -314,10 +354,9 @@ line-height:1.5;
 </div>
 
 <!-- ========================================================= -->
-<!-- 📋 LISTA PEDIDOS ENVIADOS -->
+<!-- 🚚 PAINEL ROTAS -->
 <!-- ========================================================= -->
-<div id="listaPedidosBox"></div>
-
+<div id="rotasBox"></div>
 
 <div id="footer">
 <span id="frase">Conectando lojas e entregadores em tempo real</span>
@@ -596,39 +635,50 @@ return R * c;
 
 
 // =========================================================
-// 📋 LISTAR PEDIDOS ADMIN
+// 🚚 ABRIR ROTAS
 // =========================================================
-async function listarPedidos(){
+async function abrirRotas(){
+
+document.getElementById("rotasBox").style.display = "block";
 
 const r = await fetch('/pedidos');
 const data = await r.json();
 
-let html = "<h2>📋 Pedidos Enviados</h2>";
+let html = "<h2>🚚 Central de Rotas</h2><br>";
 
 data.forEach(p=>{
 
 let status = "🟡 " + p.status;
 
-if(p.status == "aceito") status = "🟢 Aceito";
-if(p.status == "rota") status = "🚚 Em rota";
-if(p.status == "finalizado") status = "✅ Finalizado";
-if(p.status == "recusado") status = "🔴 Recusado";
+if(p.status=="aceito") status="🟢 Aceito";
+if(p.status=="rota") status="🚚 Em rota";
+if(p.status=="finalizado") status="✅ Finalizado";
+if(p.status=="recusado") status="🔴 Recusado";
 
 html += `
 <div class="pedidoItem">
 <b>Pedido:</b> ${p.codigo}<br>
 👤 ${p.cliente}<br>
+📍 ${p.rua}<br>
 🏍️ ${p.motoboy}<br>
-💰 R$ ${p.taxa}<br>
+💰 Taxa R$ ${p.taxa}<br>
 ${status}
 </div>
 `;
 
 });
 
-document.getElementById("listaPedidosBox").innerHTML = html;
-document.getElementById("listaPedidosBox").style.display = "block";
+html += `<br><button onclick="fecharRotas()">Fechar</button>`;
 
+document.getElementById("rotasBox").innerHTML = html;
+
+}
+
+// =========================================================
+// ❌ FECHAR ROTAS
+// =========================================================
+function fecharRotas(){
+document.getElementById("rotasBox").style.display = "none";
 }
 
 
@@ -636,24 +686,13 @@ document.getElementById("listaPedidosBox").style.display = "block";
 // PEDIDOS
 // =========================================================
 
-// =========================================================
-// 📦 ABRIR CENTRAL PEDIDOS
-// =========================================================
 function abrirPedidos(){
-
 document.getElementById("pedidosBox").style.display = "block";
-
 carregarMotoboys();
-
-listarPedidos(); // 🔥 faltava isso
-
 }
 
 function fecharPedidos(){
-
 document.getElementById("pedidosBox").style.display = "none";
-document.getElementById("listaPedidosBox").style.display = "none";
-
 }
 
 function carregarMotoboys(){
