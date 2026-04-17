@@ -211,6 +211,40 @@ transition:.2s;
 .item:hover{
 background:#1f2937;
 }
+
+
+#listaPedidosBox{
+position:fixed;
+top:90px;
+left:340px;
+width:420px;
+max-height:calc(100vh - 140px);
+overflow-y:auto;
+background:#111827;
+padding:16px;
+border-radius:15px;
+z-index:9999;
+display:none;
+box-shadow:0 0 20px rgba(0,0,0,.5);
+}
+
+#listaPedidosBox::-webkit-scrollbar{
+width:8px;
+}
+
+#listaPedidosBox::-webkit-scrollbar-thumb{
+background:#22c55e;
+border-radius:10px;
+}
+
+.pedidoItem{
+background:#1f2937;
+padding:12px;
+border-radius:12px;
+margin-bottom:10px;
+font-size:14px;
+line-height:1.5;
+}
 </style>
 </head>
 <body>
@@ -253,6 +287,11 @@ background:#1f2937;
 
 <!-- PEDIDOS -->
 <div id="pedidosBox">
+
+<!-- ========================================================= -->
+<!-- 📋 LISTA PEDIDOS ENVIADOS -->
+<!-- ========================================================= -->
+<div id="listaPedidosBox"></div>
 
 <h2>📦 Novo Pedido</h2>
 
@@ -552,6 +591,45 @@ return R * c;
 
 }
 
+
+
+// =========================================================
+// 📋 LISTAR PEDIDOS ADMIN
+// =========================================================
+async function listarPedidos(){
+
+const r = await fetch('/pedidos');
+const data = await r.json();
+
+let html = "<h2>📋 Pedidos Enviados</h2>";
+
+data.forEach(p=>{
+
+let status = "🟡 " + p.status;
+
+if(p.status == "aceito") status = "🟢 Aceito";
+if(p.status == "rota") status = "🚚 Em rota";
+if(p.status == "finalizado") status = "✅ Finalizado";
+if(p.status == "recusado") status = "🔴 Recusado";
+
+html += `
+<div class="pedidoItem">
+<b>Pedido:</b> ${p.codigo}<br>
+👤 ${p.cliente}<br>
+🏍️ ${p.motoboy}<br>
+💰 R$ ${p.taxa}<br>
+${status}
+</div>
+`;
+
+});
+
+document.getElementById("listaPedidosBox").innerHTML = html;
+document.getElementById("listaPedidosBox").style.display = "block";
+
+}
+
+
 // =========================================================
 // PEDIDOS
 // =========================================================
@@ -562,7 +640,10 @@ carregarMotoboys();
 }
 
 function fecharPedidos(){
+
 document.getElementById("pedidosBox").style.display = "none";
+document.getElementById("listaPedidosBox").style.display = "none";
+
 }
 
 function carregarMotoboys(){
