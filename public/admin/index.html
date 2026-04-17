@@ -128,13 +128,29 @@ width:100%;
 position:fixed;
 top:90px;
 left:20px;
-width:320px;
+width:300px;
+max-height:calc(100vh - 140px);
+overflow-y:auto;
 background:#111827;
-padding:20px;
+padding:16px;
 border-radius:15px;
 z-index:9999;
 display:none;
 box-shadow:0 0 20px rgba(0,0,0,.5);
+}
+
+#pedidosBox::-webkit-scrollbar{
+width:8px;
+}
+
+#pedidosBox::-webkit-scrollbar-track{
+background:#0f172a;
+border-radius:10px;
+}
+
+#pedidosBox::-webkit-scrollbar-thumb{
+background:#22c55e;
+border-radius:10px;
 }
 
 #pedidosBox h2{
@@ -145,10 +161,11 @@ font-size:22px;
 #pedidosBox input,
 #pedidosBox select{
 width:100%;
-padding:10px;
-margin-bottom:10px;
+padding:9px;
+margin-bottom:8px;
 border:none;
 border-radius:10px;
+font-size:14px;
 }
 
 #pedidosBox button{
