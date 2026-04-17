@@ -243,7 +243,11 @@ background:#1f2937;
 <input id="pedido_cliente" placeholder="Nome Cliente">
 <input id="pedido_rua" placeholder="Rua e Número">
 <input id="pedido_bairro" placeholder="Bairro">
+
+<input id="pedido_km" placeholder="KM" readonly>
 <input id="pedido_taxa" placeholder="Taxa Ex: 8.00">
+
+<button onclick="buscarEndereco()">📍 Buscar Endereço</button>
 
 <select id="pedido_motoboy">
 <option value="">Selecionar entregador</option>
@@ -451,6 +455,83 @@ document.getElementById("list").innerHTML = html;
 setInterval(atualizar,3000);
 atualizar();
 
+
+
+// =========================================================
+// BUSCAR ENDEREÇO + KM + TAXA
+// =========================================================
+async function buscarEndereco(){
+
+const rua = document.getElementById("pedido_rua").value.trim();
+
+if(!rua){
+alert("Digite rua e número");
+return;
+}
+
+try{
+
+const r = await fetch(
+`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(rua + ' São José do Rio Preto')}`
+);
+
+const data = await r.json();
+
+if(!data[0]){
+alert("Endereço não encontrado");
+return;
+}
+
+const destinoLat = parseFloat(data[0].lat);
+const destinoLng = parseFloat(data[0].lon);
+
+// bairro
+const partes = data[0].display_name.split(",");
+document.getElementById("pedido_bairro").value = partes[1]?.trim() || "";
+
+// usa centro da cidade como base loja (depois trocamos)
+const lojaLat = -20.8113;
+const lojaLng = -49.3758;
+
+// km
+const km = calcularDistancia(lojaLat,lojaLng,destinoLat,destinoLng);
+
+document.getElementById("pedido_km").value = km.toFixed(1) + " km";
+
+// taxa sugerida
+let taxa = 6 + (km * 1.2);
+
+if(taxa < 7) taxa = 7;
+
+document.getElementById("pedido_taxa").value = taxa.toFixed(2);
+
+}catch(e){
+alert("Erro ao buscar endereço");
+}
+
+}
+
+// =========================================================
+// CALCULAR DISTÂNCIA
+// =========================================================
+function calcularDistancia(lat1, lon1, lat2, lon2){
+
+const R = 6371;
+
+const dLat = (lat2-lat1) * Math.PI/180;
+const dLon = (lon2-lon1) * Math.PI/180;
+
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+return R * c;
+
+}
 
 // =========================================================
 // PEDIDOS
