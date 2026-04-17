@@ -266,10 +266,34 @@ mover(markers[id],m.lat,m.lng,id);
 
 }
 
+let rua = "";
+let bairro = "";
+let cidade = "";
+
+try{
+
+const partes = end.split(",");
+
+rua = partes[0] || "Não informado";
+bairro = partes[1] || "Não informado";
+cidade = partes[2] || "Não informado";
+
+}catch{}
+
 markers[id].setPopupContent(`
-<b>🏍️ ${id}</b><br>
-${m.online ? '🟢 Online':'🔴 Offline'}<br><br>
-📍 ${end}
+<div style="min-width:220px;font-family:Arial;line-height:1.6;">
+
+<b style="font-size:18px;">🏍️ ${id}</b><br>
+
+${m.online ? '🟢 Online':'🔴 Offline'}
+
+<hr>
+
+📍 <b>Rua:</b> ${rua}<br>
+🏘️ <b>Bairro:</b> ${bairro}<br>
+🌆 <b>Cidade:</b> ${cidade}
+
+</div>
 `);
 
 }
