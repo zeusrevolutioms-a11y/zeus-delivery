@@ -259,7 +259,7 @@ background:#1f2937;
 <input id="pedido_codigo" placeholder="Código Pedido">
 <input id="pedido_cliente" placeholder="Nome Cliente">
 <input id="pedido_rua" placeholder="Rua">
-<input id="pedido_rua" placeholder="Número">
+<input id="pedido_numero" placeholder="Número">
 <input id="pedido_bairro" placeholder="Bairro">
 <input id="pedido_km" placeholder="KM" readonly>
 <input id="pedido_taxa" placeholder="Taxa Ex: 8.00">
@@ -577,28 +577,39 @@ document.getElementById("pedido_motoboy").innerHTML = html;
 
 }
 
-function salvarPedido(){
+// =========================================================
+// 🚀 ENVIAR PEDIDO REAL MYSQL
+// =========================================================
+async function salvarPedido(){
 
 const pedido = {
 codigo: document.getElementById("pedido_codigo").value,
 cliente: document.getElementById("pedido_cliente").value,
 rua: document.getElementById("pedido_rua").value,
 bairro: document.getElementById("pedido_bairro").value,
+km: document.getElementById("pedido_km").value,
 taxa: document.getElementById("pedido_taxa").value,
 motoboy: document.getElementById("pedido_motoboy").value
 };
 
-alert(
-"🚀 Pedido enviado!\n\n" +
-"Código: " + pedido.codigo + "\n" +
-"Cliente: " + pedido.cliente + "\n" +
-"Entregador: " + pedido.motoboy
-);
+const r = await fetch('/pedido',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify(pedido)
+});
+
+const data = await r.json();
+
+if(data.error){
+alert("Erro ao enviar pedido");
+return;
+}
+
+alert("🚀 Pedido salvo com sucesso!");
 
 fecharPedidos();
 
 }
-
 
 
 // FRASES RODAPÉ
