@@ -1,345 +1,159 @@
-<!-- ========================================================= -->
-<!-- 🗺️ PAINEL ADMIN / LOJA - MAPA TEMPO REAL COMPLETO -->
-<!-- 📌 Arquivo: public/painel.html -->
-<!-- ✅ Mantido tudo que já fizemos -->
-<!-- ✅ Loading -->
-<!-- ✅ Lista lateral -->
-<!-- ✅ Motinha animada -->
-<!-- ✅ Busca -->
-<!-- ✅ Popup corrigido Rua / Bairro / Cidade -->
-<!-- ========================================================= -->
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Painel Delivery</title>
+    <title>Painel</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        body { font-family: Arial; }
+        #map { height: 500px; }
 
-<style>
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
+        #topbar {
+            padding: 10px;
+            background: #111;
+            color: white;
+        }
 
-body{
-font-family:Arial;
-background:#0f172a;
-color:#fff;
-overflow:hidden;
-}
+        input {
+            padding: 5px;
+            margin-right: 5px;
+        }
 
-/* LOADING */
-#loading{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#0f172a;
-display:flex;
-justify-content:center;
-align-items:center;
-flex-direction:column;
-z-index:9999;
-}
+        button {
+            padding: 6px;
+            cursor: pointer;
+        }
 
-#loading img{
-width:140px;
-animation:pulse 1.5s infinite;
-}
+        #list {
+            margin-top: 10px;
+        }
 
-@keyframes pulse{
-0%{transform:scale(1)}
-50%{transform:scale(1.1)}
-100%{transform:scale(1)}
-}
-
-/* TOPO */
-#topbar{
-height:80px;
-background:#111827;
-display:flex;
-align-items:center;
-padding:10px;
-gap:10px;
-}
-
-#logo{
-width:55px;
-border-radius:10px;
-}
-
-#search{
-padding:12px;
-border:none;
-border-radius:10px;
-width:220px;
-}
-
-button{
-padding:12px 15px;
-border:none;
-border-radius:10px;
-background:#22c55e;
-color:#fff;
-font-weight:bold;
-cursor:pointer;
-}
-
-/* MAPA */
-#map{
-height:calc(100vh - 80px);
-width:100%;
-}
-
-/* LISTA */
-#list{
-position:absolute;
-top:90px;
-right:10px;
-width:260px;
-max-height:500px;
-overflow:auto;
-z-index:999;
-}
-
-.item{
-background:#111827ee;
-padding:12px;
-margin-bottom:8px;
-border-radius:10px;
-cursor:pointer;
-transition:.2s;
-}
-
-.item:hover{
-background:#1f2937;
-}
-</style>
+        .item {
+            background: #eee;
+            padding: 5px;
+            margin: 3px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loading">
-<img src="https://i.postimg.cc/XYprkPvs/Motinha.png">
-<h2>ROTA SPEED</h2>
-<p>Carregando Painel...</p>
-</div>
-
-<!-- TOPO -->
 <div id="topbar">
-
-<img id="logo" src="https://i.imgur.com/yEAsQcy.png">
-
-<input id="search" placeholder="Buscar motoboy">
-
-<button onclick="buscar()">Buscar</button>
-
+    🔎 Buscar motoboy:
+    <input id="search" placeholder="ID">
+    <button onclick="buscar()">Buscar</button>
 </div>
 
-<!-- MAPA -->
 <div id="map"></div>
 
-<!-- LISTA -->
 <div id="list"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-// =========================================================
-// LOADING
-// =========================================================
-setTimeout(()=>{
-document.getElementById("loading").style.display="none";
-},2200);
+// 📍 Rio Preto
+const map = L.map('map').setView([-20.8113, -49.3758], 13);
 
-// =========================================================
-// MAPA
-// =========================================================
-const map = L.map('map').setView([-20.8113,-49.3758],13);
+// 🌍 mapa
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map);
-
-// =========================================================
-// ICON MOTO
-// =========================================================
+// 🏍️ ícone (SEU ORIGINAL MANTIDO)
 const motoIcon = L.icon({
-iconUrl:'https://i.postimg.cc/XYprkPvs/Motinha.png',
-iconSize:[120,120],
-iconAnchor:[60,60]
+    iconUrl: 'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png?ex=69ce95e1&is=69cd4461&hm=663dcfd59780f33b4bb8014562223687ca1826710168102d87457a09dd2b704a&=&format=webp&quality=lossless&width=814&height=543',
+    iconSize: [100, 100]
 });
 
 let markers = {};
-let animando = {};
+let dadosAtuais = {};
 
-// =========================================================
-// BUSCAR
-// =========================================================
-function buscar(){
+// 🔎 buscar motoboy
+function buscar() {
+    const id = document.getElementById("search").value;
 
-const id = document.getElementById("search").value;
-
-if(markers[id]){
-map.setView(markers[id].getLatLng(),18);
-markers[id].openPopup();
-}else{
-alert("Motoboy não encontrado");
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
+    } else {
+        alert("Motoboy não encontrado");
+    }
 }
 
+// 📍 endereço
+async function getEndereco(lat, lng) {
+    try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        return data.display_name;
+    } catch {
+        return "Endereço não encontrado";
+    }
 }
 
-// =========================================================
-// FOCAR
-// =========================================================
-function focar(id){
+// 🔄 atualizar
+setInterval(async () => {
 
-if(markers[id]){
-map.setView(markers[id].getLatLng(),18);
-markers[id].openPopup();
+    const res = await fetch('/motoboys');
+    const data = await res.json();
+
+    dadosAtuais = data;
+
+    let listaHTML = "";
+
+    for (let id in data) {
+
+        const { lat, lng, online } = data[id];
+
+        // 🔥 LISTA COM STATUS
+        listaHTML += `
+        <div class="item" onclick="focar('${id}')">
+            🏍️ Motoboy ${id} ${online ? "🟢" : "🔴"}
+        </div>`;
+
+        // ============================
+        // NOVO MARKER
+        // ============================
+        if (!markers[id]) {
+
+            const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
+
+            const endereco = await getEndereco(lat, lng);
+
+            marker.bindPopup(`
+                🏍️ Motoboy: ${id} <br>
+                📍 ${endereco} <br>
+                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
+            `);
+
+            markers[id] = marker;
+
+        } else {
+
+            // 🔥 atualiza posição
+            markers[id].setLatLng([lat, lng]);
+
+            // 🔥 ATUALIZA POPUP (IMPORTANTE)
+            const endereco = await getEndereco(lat, lng);
+
+            markers[id].setPopupContent(`
+                🏍️ Motoboy: ${id} <br>
+                📍 ${endereco} <br>
+                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
+            `);
+        }
+    }
+
+    document.getElementById("list").innerHTML = listaHTML;
+
+}, 3000);
+
+// 🎯 focar
+function focar(id) {
+    if (markers[id]) {
+        map.setView(markers[id].getLatLng(), 17);
+        markers[id].openPopup();
+    }
 }
-
-}
-
-// =========================================================
-// PEGAR ENDEREÇO
-// =========================================================
-async function endereco(lat,lng){
-
-try{
-
-const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-const j = await r.json();
-
-return j.display_name || "Sem endereço";
-
-}catch{
-return "Sem endereço";
-}
-
-}
-
-// =========================================================
-// ANIMAR MOTINHA
-// =========================================================
-function mover(marker,nlat,nlng,id){
-
-if(animando[id]) clearInterval(animando[id]);
-
-const atual = marker.getLatLng();
-
-let i = 0;
-let total = 25;
-
-const slat = (nlat - atual.lat) / total;
-const slng = (nlng - atual.lng) / total;
-
-animando[id] = setInterval(()=>{
-
-i++;
-
-marker.setLatLng([
-atual.lat + slat * i,
-atual.lng + slng * i
-]);
-
-if(i >= total){
-clearInterval(animando[id]);
-}
-
-},100);
-
-}
-
-// =========================================================
-// ATUALIZAR SISTEMA
-// =========================================================
-async function atualizar(){
-
-const r = await fetch('/motoboys');
-const data = await r.json();
-
-let html = "";
-
-for(let id in data){
-
-const m = data[id];
-
-html += `
-<div class="item" onclick="focar('${id}')">
-🏍️ ${id}<br>
-${m.online ? '🟢 Online':'🔴 Offline'}
-</div>
-`;
-
-const end = await endereco(m.lat,m.lng);
-
-// NOVO MARKER
-if(!markers[id]){
-
-markers[id] = L.marker([m.lat,m.lng],{
-icon:motoIcon
-}).addTo(map);
-
-markers[id].on('click',function(){
-this.openPopup();
-});
-
-}else{
-
-mover(markers[id],m.lat,m.lng,id);
-
-}
-
-// =========================================================
-// POPUP CORRIGIDO
-// =========================================================
-let rua = "";
-let bairro = "";
-let cidade = "";
-
-try{
-
-const partes = end.split(",");
-
-rua = partes[0] || "Não informado";
-bairro = partes[1] || "Não informado";
-cidade = partes[2] || "Não informado";
-
-}catch{}
-
-markers[id].setPopupContent(`
-<div style="min-width:230px;font-family:Arial;line-height:1.7;">
-
-<b style="font-size:18px;color:#111;">🏍️ ${id}</b><br>
-
-${m.online ? '🟢 Online':'🔴 Offline'}
-
-<hr>
-
-📍 <b>Rua:</b> ${rua}<br>
-🏘️ <b>Bairro:</b> ${bairro}<br>
-🌆 <b>Cidade:</b> ${cidade}
-
-</div>
-`);
-
-}
-
-document.getElementById("list").innerHTML = html;
-
-}
-
-// =========================================================
-// LOOP
-// =========================================================
-setInterval(atualizar,3000);
-atualizar();
 
 </script>
 
