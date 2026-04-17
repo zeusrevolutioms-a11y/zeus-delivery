@@ -49,7 +49,9 @@ km VARCHAR(20),
 taxa VARCHAR(20),
 motoboy VARCHAR(50),
 status VARCHAR(30),
-created BIGINT
+tentativas INT DEFAULT 0,
+created BIGINT,
+updated BIGINT
 )
 `);
 
@@ -189,8 +191,8 @@ motoboy
 
 await db.query(`
 INSERT INTO pedidos
-(codigo,cliente,rua,bairro,km,taxa,motoboy,status,created)
-VALUES(?,?,?,?,?,?,?,?,?)
+(codigo,cliente,rua,bairro,km,taxa,motoboy,status,tentativas,created,updated)
+VALUES(?,?,?,?,?,?,?,?,?,?,?)
 `,[
 codigo,
 cliente,
@@ -200,6 +202,8 @@ km,
 taxa,
 motoboy,
 'aguardando',
+0,
+Date.now(),
 Date.now()
 ]);
 
@@ -214,7 +218,35 @@ res.send({error:"erro salvar pedido"});
 
 });
 
+// =========================================================
+// 🟢 ACEITAR PEDIDO
+// =========================================================
+app.post('/pedido/aceitar', async(req,res)=>{
 
+const { id } = req.body;
+
+await db.query(
+"UPDATE pedidos SET status='aceito', updated=? WHERE id=?",
+[Date.now(),id]
+);
+
+res.send({status:"ok"});
+});
+
+// =========================================================
+// 🔴 RECUSAR PEDIDO
+// =========================================================
+app.post('/pedido/recusar', async(req,res)=>{
+
+const { id } = req.body;
+
+await db.query(
+"UPDATE pedidos SET status='recusado', updated=? WHERE id=?",
+[Date.now(),id]
+);
+
+res.send({status:"ok"});
+});
 
 // =========================================================
 // 📦 LISTAR PEDIDOS
@@ -246,6 +278,65 @@ mensagem:e.message
 }
 
 });
+
+
+// =========================================================
+// 🔁 LOOP AUTOMÁTICO REENVIO
+// =========================================================
+setInterval(async()=>{
+
+try{
+
+const [rows] = await db.query(`
+SELECT * FROM pedidos
+WHERE status='aguardando'
+`);
+
+for(const p of rows){
+
+const tempo = Date.now() - p.updated;
+
+if(tempo < 60000) continue; // 1 minuto
+
+// busca online
+const [motos] = await db.query(`
+SELECT id FROM motoboys
+WHERE online=1 AND id<>?
+LIMIT 1
+`,[p.motoboy]);
+
+if(motos.length <= 0){
+
+await db.query(`
+UPDATE pedidos
+SET status='sem_online', updated=?
+WHERE id=?
+`,[Date.now(),p.id]);
+
+continue;
+}
+
+await db.query(`
+UPDATE pedidos
+SET motoboy=?,
+tentativas=tentativas+1,
+updated=?
+WHERE id=?
+`,[
+motos[0].id,
+Date.now(),
+p.id
+]);
+
+}
+
+}catch(e){
+console.log("loop pedidos:",e);
+}
+
+},15000);
+
+
 
 // =========================================================
 // 🚀 START
