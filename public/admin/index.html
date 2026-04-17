@@ -1,161 +1,232 @@
+<!-- ========================================================= -->
+<!-- 🗺️ PAINEL ADMIN / LOJA - MAPA TEMPO REAL COMPLETO -->
+<!-- 📌 Arquivo: public/painel.html -->
+<!-- ✅ Motinha animada -->
+<!-- ✅ Busca entregador -->
+<!-- ✅ Online só quando motoboy desligar -->
+<!-- ========================================================= -->
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Painel</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Painel Delivery</title>
 
-    <style>
-        body { font-family: Arial; }
-        #map { height: 500px; }
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-        #topbar {
-            padding: 10px;
-            background: #111;
-            color: white;
-        }
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        input {
-            padding: 5px;
-            margin-right: 5px;
-        }
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#0f172a;
+    color:#fff;
+}
 
-        button {
-            padding: 6px;
-            cursor: pointer;
-        }
+#topbar{
+    background:#111827;
+    padding:15px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+}
 
-        #list {
-            margin-top: 10px;
-        }
+#topbar input{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    width:220px;
+}
 
-        .item {
-            background: #eee;
-            padding: 5px;
-            margin: 3px;
-            cursor: pointer;
-        }
-    </style>
+#topbar button{
+    padding:10px 15px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:#fff;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#map{
+    height:75vh;
+}
+
+#list{
+    background:#111827;
+    padding:10px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:8px;
+}
+
+.item{
+    background:#1f2937;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.item:hover{
+    transform:scale(1.02);
+    background:#374151;
+}
+</style>
 </head>
 <body>
 
 <div id="topbar">
-    🔎 Buscar motoboy:
-    <input id="search" placeholder="ID">
+    🔎 <input id="search" placeholder="Buscar ID motoboy">
     <button onclick="buscar()">Buscar</button>
 </div>
 
 <div id="map"></div>
-
 <div id="list"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-// 📍 Rio Preto
-const map = L.map('map').setView([-20.8113, -49.3758], 13);
+// =========================================================
+// 🗺️ MAPA
+// =========================================================
+const map = L.map('map').setView([-20.8113,-49.3758],13);
 
-// 🌍 mapa
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19
+}).addTo(map);
 
-// 🏍️ ícone (SEU ORIGINAL MANTIDO)
+// =========================================================
+// 🏍️ ICON MOTO
+// =========================================================
 const motoIcon = L.icon({
-    iconUrl: 'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png?ex=69ce95e1&is=69cd4461&hm=663dcfd59780f33b4bb8014562223687ca1826710168102d87457a09dd2b704a&=&format=webp&quality=lossless&width=814&height=543',
-    iconSize: [100, 100]
+    iconUrl:'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png',
+    iconSize:[90,90],
+    iconAnchor:[45,45]
 });
 
 let markers = {};
-let dadosAtuais = {};
+let animacoes = {};
 
-// 🔎 buscar motoboy
-function buscar() {
+// =========================================================
+// 🔎 BUSCAR
+// =========================================================
+function buscar(){
+
     const id = document.getElementById("search").value;
 
-    if (markers[id]) {
-        map.setView(markers[id].getLatLng(), 17);
+    if(markers[id]){
+        map.setView(markers[id].getLatLng(),18);
         markers[id].openPopup();
-    } else {
-        alert("Motoboy não encontrado");
+    }else{
+        alert("Motoboy não encontrado.");
     }
 }
 
-// 📍 endereço
-async function getEndereco(lat, lng) {
-    try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-        const data = await res.json();
-        return data.display_name;
-    } catch {
-        return "Endereço não encontrado";
+// =========================================================
+// 🎯 FOCAR
+// =========================================================
+function focar(id){
+
+    if(markers[id]){
+        map.setView(markers[id].getLatLng(),18);
+        markers[id].openPopup();
     }
 }
 
-// 🔄 atualizar
-setInterval(async () => {
+// =========================================================
+// 🏍️ ANIMAÇÃO SUAVE
+// =========================================================
+function moverSuave(marker,novaLat,novaLng,id){
+
+    if(animacoes[id]){
+        clearInterval(animacoes[id]);
+    }
+
+    const atual = marker.getLatLng();
+
+    let passos = 30;
+    let atualPasso = 0;
+
+    const stepLat = (novaLat - atual.lat) / passos;
+    const stepLng = (novaLng - atual.lng) / passos;
+
+    animacoes[id] = setInterval(()=>{
+
+        atualPasso++;
+
+        marker.setLatLng([
+            atual.lat + (stepLat * atualPasso),
+            atual.lng + (stepLng * atualPasso)
+        ]);
+
+        if(atualPasso >= passos){
+            clearInterval(animacoes[id]);
+        }
+
+    },100);
+}
+
+// =========================================================
+// 🔄 ATUALIZAÇÃO TEMPO REAL
+// =========================================================
+async function atualizar(){
 
     const res = await fetch('/motoboys');
     const data = await res.json();
 
-    dadosAtuais = data;
+    let html = "";
 
-    let listaHTML = "";
+    for(let id in data){
 
-    for (let id in data) {
+        const motoboy = data[id];
 
-        const { lat, lng, online } = data[id];
+        const status = motoboy.online ? "🟢 Online" : "🔴 Offline";
 
-        // 🔥 LISTA COM STATUS
-        listaHTML += `
-        <div class="item" onclick="focar('${id}')">
-            🏍️ Motoboy ${id} ${online ? "🟢" : "🔴"}
-        </div>`;
+        html += `
+            <div class="item" onclick="focar('${id}')">
+                🏍️ ${id}<br>
+                ${status}
+            </div>
+        `;
 
-        // ============================
-        // NOVO MARKER
-        // ============================
-        if (!markers[id]) {
+        // NOVO
+        if(!markers[id]){
 
-            const marker = L.marker([lat, lng], { icon: motoIcon }).addTo(map);
+            markers[id] = L.marker(
+                [motoboy.lat,motoboy.lng],
+                {icon:motoIcon}
+            ).addTo(map);
 
-            const endereco = await getEndereco(lat, lng);
+        }else{
 
-            marker.bindPopup(`
-                🏍️ Motoboy: ${id} <br>
-                📍 ${endereco} <br>
-                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
-            `);
-
-            markers[id] = marker;
-
-        } else {
-
-            // 🔥 atualiza posição
-            markers[id].setLatLng([lat, lng]);
-
-            // 🔥 ATUALIZA POPUP (IMPORTANTE)
-            const endereco = await getEndereco(lat, lng);
-
-            markers[id].setPopupContent(`
-                🏍️ Motoboy: ${id} <br>
-                📍 ${endereco} <br>
-                ${online ? "🟢 ONLINE" : "🔴 OFFLINE"}
-            `);
+            moverSuave(
+                markers[id],
+                motoboy.lat,
+                motoboy.lng,
+                id
+            );
         }
+
+        markers[id].setPopupContent(`
+            🏍️ <b>${id}</b><br>
+            ${status}<br>
+            📍 ${motoboy.lat.toFixed(5)}, ${motoboy.lng.toFixed(5)}
+        `);
     }
 
-    document.getElementById("list").innerHTML = listaHTML;
-
-}, 3000);
-
-// 🎯 focar
-function focar(id) {
-    if (markers[id]) {
-        map.setView(markers[id].getLatLng(), 17);
-        markers[id].openPopup();
-    }
+    document.getElementById("list").innerHTML = html;
 }
 
-</script>
+setInterval(atualizar,3000);
+atualizar();
 
+</script>
 </body>
 </html>
