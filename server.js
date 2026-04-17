@@ -34,6 +34,25 @@ CREATE TABLE IF NOT EXISTS motoboys(
 )
 `);
 
+
+// =========================================================
+// 📦 TABELA PEDIDOS
+// =========================================================
+await db.query(`
+CREATE TABLE IF NOT EXISTS pedidos(
+id INT AUTO_INCREMENT PRIMARY KEY,
+codigo VARCHAR(50),
+cliente VARCHAR(100),
+rua VARCHAR(255),
+bairro VARCHAR(100),
+km VARCHAR(20),
+taxa VARCHAR(20),
+motoboy VARCHAR(50),
+status VARCHAR(30),
+created BIGINT
+)
+`);
+
 console.log("📦 Banco pronto");
 
 })();
@@ -147,6 +166,51 @@ resposta[m.id] = {
 });
 
 res.send(resposta);
+
+});
+
+
+// =========================================================
+// 🚀 SALVAR PEDIDO
+// =========================================================
+app.post('/pedido', async(req,res)=>{
+
+try{
+
+const {
+codigo,
+cliente,
+rua,
+bairro,
+km,
+taxa,
+motoboy
+} = req.body;
+
+await db.query(`
+INSERT INTO pedidos
+(codigo,cliente,rua,bairro,km,taxa,motoboy,status,created)
+VALUES(?,?,?,?,?,?,?,?,?)
+`,[
+codigo,
+cliente,
+rua,
+bairro,
+km,
+taxa,
+motoboy,
+'aguardando',
+Date.now()
+]);
+
+res.send({status:"ok"});
+
+}catch(e){
+
+console.log(e);
+res.send({error:"erro salvar pedido"});
+
+}
 
 });
 
