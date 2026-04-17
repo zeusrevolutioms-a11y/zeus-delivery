@@ -16,217 +16,272 @@
 
 <style>
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+margin:0;
+padding:0;
+box-sizing:border-box;
 }
 
 body{
-    font-family:Arial, Helvetica, sans-serif;
-    background:#0f172a;
-    color:#fff;
+font-family:Arial;
+background:#0f172a;
+color:#fff;
+overflow:hidden;
 }
 
+/* LOADING */
+#loading{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#0f172a;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:9999;
+}
+
+#loading img{
+width:140px;
+animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.1)}
+100%{transform:scale(1)}
+}
+
+/* TOPO */
 #topbar{
-    background:#111827;
-    padding:15px;
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-wrap:wrap;
+height:80px;
+background:#111827;
+display:flex;
+align-items:center;
+padding:10px;
+gap:10px;
 }
 
-#topbar input{
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    width:220px;
+#logo{
+width:55px;
+border-radius:10px;
 }
 
-#topbar button{
-    padding:10px 15px;
-    border:none;
-    border-radius:8px;
-    background:#22c55e;
-    color:#fff;
-    cursor:pointer;
-    font-weight:bold;
+#search{
+padding:12px;
+border:none;
+border-radius:10px;
+width:220px;
 }
 
+button{
+padding:12px 15px;
+border:none;
+border-radius:10px;
+background:#22c55e;
+color:#fff;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* MAPA */
 #map{
-    height:75vh;
+height:calc(100vh - 80px);
+width:100%;
 }
 
+/* LISTA FLUTUANTE */
 #list{
-    background:#111827;
-    padding:10px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-    gap:8px;
+position:absolute;
+top:90px;
+right:10px;
+width:260px;
+max-height:500px;
+overflow:auto;
+z-index:999;
 }
 
 .item{
-    background:#1f2937;
-    padding:12px;
-    border-radius:10px;
-    cursor:pointer;
-    transition:0.2s;
+background:#111827ee;
+padding:12px;
+margin-bottom:8px;
+border-radius:10px;
+cursor:pointer;
 }
 
 .item:hover{
-    transform:scale(1.02);
-    background:#374151;
+background:#1f2937;
 }
 </style>
 </head>
 <body>
 
-<div id="topbar">
-    🔎 <input id="search" placeholder="Buscar ID motoboy">
-    <button onclick="buscar()">Buscar</button>
+<!-- LOADING -->
+<div id="loading">
+<img src="https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png">
+<h2>ROTA SPEED</h2>
+<p>Carregando Painel...</p>
 </div>
 
+<!-- TOPO -->
+<div id="topbar">
+
+<img id="logo" src="https://i.imgur.com/yEAsQcy.png">
+
+<input id="search" placeholder="Buscar motoboy">
+
+<button onclick="buscar()">Buscar</button>
+
+</div>
+
+<!-- MAPA -->
 <div id="map"></div>
+
+<!-- LISTA -->
 <div id="list"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
-// =========================================================
-// 🗺️ MAPA
-// =========================================================
+setTimeout(()=>{
+document.getElementById("loading").style.display="none";
+},2200);
+
+// MAPA
 const map = L.map('map').setView([-20.8113,-49.3758],13);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// =========================================================
-// 🏍️ ICON MOTO
-// =========================================================
+// ICON
 const motoIcon = L.icon({
-    iconUrl:'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png',
-    iconSize:[90,90],
-    iconAnchor:[45,45]
+iconUrl:'https://media.discordapp.net/attachments/1367096565725921411/1488934574275690506/Motinha.png',
+iconSize:[120,120],
+iconAnchor:[60,60]
 });
 
 let markers = {};
-let animacoes = {};
+let animando = {};
 
-// =========================================================
-// 🔎 BUSCAR
-// =========================================================
+// BUSCAR
 function buscar(){
 
-    const id = document.getElementById("search").value;
+const id = document.getElementById("search").value;
 
-    if(markers[id]){
-        map.setView(markers[id].getLatLng(),18);
-        markers[id].openPopup();
-    }else{
-        alert("Motoboy não encontrado.");
-    }
+if(markers[id]){
+map.setView(markers[id].getLatLng(),18);
+markers[id].openPopup();
+}else{
+alert("Não encontrado");
 }
 
-// =========================================================
-// 🎯 FOCAR
-// =========================================================
+}
+
+// FOCAR
 function focar(id){
 
-    if(markers[id]){
-        map.setView(markers[id].getLatLng(),18);
-        markers[id].openPopup();
-    }
+if(markers[id]){
+map.setView(markers[id].getLatLng(),18);
+markers[id].openPopup();
 }
 
-// =========================================================
-// 🏍️ ANIMAÇÃO SUAVE
-// =========================================================
-function moverSuave(marker,novaLat,novaLng,id){
-
-    if(animacoes[id]){
-        clearInterval(animacoes[id]);
-    }
-
-    const atual = marker.getLatLng();
-
-    let passos = 30;
-    let atualPasso = 0;
-
-    const stepLat = (novaLat - atual.lat) / passos;
-    const stepLng = (novaLng - atual.lng) / passos;
-
-    animacoes[id] = setInterval(()=>{
-
-        atualPasso++;
-
-        marker.setLatLng([
-            atual.lat + (stepLat * atualPasso),
-            atual.lng + (stepLng * atualPasso)
-        ]);
-
-        if(atualPasso >= passos){
-            clearInterval(animacoes[id]);
-        }
-
-    },100);
 }
 
-// =========================================================
-// 🔄 ATUALIZAÇÃO TEMPO REAL
-// =========================================================
+// ENDEREÇO
+async function endereco(lat,lng){
+
+try{
+
+const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+const j = await r.json();
+
+return j.display_name || "Sem endereço";
+
+}catch{
+return "Sem endereço";
+}
+
+}
+
+// ANIMAR
+function mover(marker,nlat,nlng,id){
+
+if(animando[id]) clearInterval(animando[id]);
+
+const atual = marker.getLatLng();
+
+let i=0;
+let total=25;
+
+const slat = (nlat-atual.lat)/total;
+const slng = (nlng-atual.lng)/total;
+
+animando[id] = setInterval(()=>{
+
+i++;
+
+marker.setLatLng([
+atual.lat + slat*i,
+atual.lng + slng*i
+]);
+
+if(i>=total) clearInterval(animando[id]);
+
+},100);
+
+}
+
+// UPDATE
 async function atualizar(){
 
-    const res = await fetch('/motoboys');
-    const data = await res.json();
+const r = await fetch('/motoboys');
+const data = await r.json();
 
-    let html = "";
+let html = "";
 
-    for(let id in data){
+for(let id in data){
 
-        const motoboy = data[id];
+const m = data[id];
 
-        const status = motoboy.online ? "🟢 Online" : "🔴 Offline";
+html += `
+<div class="item" onclick="focar('${id}')">
+🏍️ ${id}<br>
+${m.online ? '🟢 Online':'🔴 Offline'}
+</div>
+`;
 
-        html += `
-            <div class="item" onclick="focar('${id}')">
-                🏍️ ${id}<br>
-                ${status}
-            </div>
-        `;
+const end = await endereco(m.lat,m.lng);
 
-        // NOVO
-        if(!markers[id]){
+if(!markers[id]){
 
-            markers[id] = L.marker(
-                [motoboy.lat,motoboy.lng],
-                {icon:motoIcon}
-            ).addTo(map);
+markers[id] = L.marker([m.lat,m.lng],{
+icon:motoIcon
+}).addTo(map);
 
-        }else{
+}else{
 
-            moverSuave(
-                markers[id],
-                motoboy.lat,
-                motoboy.lng,
-                id
-            );
-        }
+mover(markers[id],m.lat,m.lng,id);
 
-        markers[id].setPopupContent(`
-            🏍️ <b>${id}</b><br>
-            ${status}<br>
-            📍 ${motoboy.lat.toFixed(5)}, ${motoboy.lng.toFixed(5)}
-        `);
-    }
+}
 
-    document.getElementById("list").innerHTML = html;
+markers[id].setPopupContent(`
+<b>🏍️ ${id}</b><br>
+${m.online ? '🟢 Online':'🔴 Offline'}<br><br>
+📍 ${end}
+`);
+
+}
+
+document.getElementById("list").innerHTML = html;
+
 }
 
 setInterval(atualizar,3000);
 atualizar();
 
 </script>
+
 </body>
 </html>
