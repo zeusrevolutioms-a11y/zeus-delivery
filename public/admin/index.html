@@ -1,9 +1,12 @@
 <!-- ========================================================= -->
 <!-- 🗺️ PAINEL ADMIN / LOJA - MAPA TEMPO REAL COMPLETO -->
 <!-- 📌 Arquivo: public/painel.html -->
+<!-- ✅ Mantido tudo que já fizemos -->
+<!-- ✅ Loading -->
+<!-- ✅ Lista lateral -->
 <!-- ✅ Motinha animada -->
-<!-- ✅ Busca entregador -->
-<!-- ✅ Online só quando motoboy desligar -->
+<!-- ✅ Busca -->
+<!-- ✅ Popup corrigido Rua / Bairro / Cidade -->
 <!-- ========================================================= -->
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -92,7 +95,7 @@ height:calc(100vh - 80px);
 width:100%;
 }
 
-/* LISTA FLUTUANTE */
+/* LISTA */
 #list{
 position:absolute;
 top:90px;
@@ -109,6 +112,7 @@ padding:12px;
 margin-bottom:8px;
 border-radius:10px;
 cursor:pointer;
+transition:.2s;
 }
 
 .item:hover{
@@ -146,16 +150,25 @@ background:#1f2937;
 
 <script>
 
+// =========================================================
+// LOADING
+// =========================================================
 setTimeout(()=>{
 document.getElementById("loading").style.display="none";
 },2200);
 
+// =========================================================
 // MAPA
+// =========================================================
 const map = L.map('map').setView([-20.8113,-49.3758],13);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(map);
 
-// ICON
+// =========================================================
+// ICON MOTO
+// =========================================================
 const motoIcon = L.icon({
 iconUrl:'https://i.postimg.cc/XYprkPvs/Motinha.png',
 iconSize:[120,120],
@@ -165,7 +178,9 @@ iconAnchor:[60,60]
 let markers = {};
 let animando = {};
 
+// =========================================================
 // BUSCAR
+// =========================================================
 function buscar(){
 
 const id = document.getElementById("search").value;
@@ -174,12 +189,14 @@ if(markers[id]){
 map.setView(markers[id].getLatLng(),18);
 markers[id].openPopup();
 }else{
-alert("Não encontrado");
+alert("Motoboy não encontrado");
 }
 
 }
 
+// =========================================================
 // FOCAR
+// =========================================================
 function focar(id){
 
 if(markers[id]){
@@ -189,7 +206,9 @@ markers[id].openPopup();
 
 }
 
-// ENDEREÇO
+// =========================================================
+// PEGAR ENDEREÇO
+// =========================================================
 async function endereco(lat,lng){
 
 try{
@@ -205,35 +224,41 @@ return "Sem endereço";
 
 }
 
-// ANIMAR
+// =========================================================
+// ANIMAR MOTINHA
+// =========================================================
 function mover(marker,nlat,nlng,id){
 
 if(animando[id]) clearInterval(animando[id]);
 
 const atual = marker.getLatLng();
 
-let i=0;
-let total=25;
+let i = 0;
+let total = 25;
 
-const slat = (nlat-atual.lat)/total;
-const slng = (nlng-atual.lng)/total;
+const slat = (nlat - atual.lat) / total;
+const slng = (nlng - atual.lng) / total;
 
 animando[id] = setInterval(()=>{
 
 i++;
 
 marker.setLatLng([
-atual.lat + slat*i,
-atual.lng + slng*i
+atual.lat + slat * i,
+atual.lng + slng * i
 ]);
 
-if(i>=total) clearInterval(animando[id]);
+if(i >= total){
+clearInterval(animando[id]);
+}
 
 },100);
 
 }
 
-// UPDATE
+// =========================================================
+// ATUALIZAR SISTEMA
+// =========================================================
 async function atualizar(){
 
 const r = await fetch('/motoboys');
@@ -254,11 +279,16 @@ ${m.online ? '🟢 Online':'🔴 Offline'}
 
 const end = await endereco(m.lat,m.lng);
 
+// NOVO MARKER
 if(!markers[id]){
 
 markers[id] = L.marker([m.lat,m.lng],{
 icon:motoIcon
 }).addTo(map);
+
+markers[id].on('click',function(){
+this.openPopup();
+});
 
 }else{
 
@@ -266,6 +296,9 @@ mover(markers[id],m.lat,m.lng,id);
 
 }
 
+// =========================================================
+// POPUP CORRIGIDO
+// =========================================================
 let rua = "";
 let bairro = "";
 let cidade = "";
@@ -281,9 +314,9 @@ cidade = partes[2] || "Não informado";
 }catch{}
 
 markers[id].setPopupContent(`
-<div style="min-width:220px;font-family:Arial;line-height:1.6;">
+<div style="min-width:230px;font-family:Arial;line-height:1.7;">
 
-<b style="font-size:18px;">🏍️ ${id}</b><br>
+<b style="font-size:18px;color:#111;">🏍️ ${id}</b><br>
 
 ${m.online ? '🟢 Online':'🔴 Offline'}
 
@@ -302,6 +335,9 @@ document.getElementById("list").innerHTML = html;
 
 }
 
+// =========================================================
+// LOOP
+// =========================================================
 setInterval(atualizar,3000);
 atualizar();
 
