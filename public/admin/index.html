@@ -422,49 +422,7 @@ mover(markers[id],m.lat,m.lng,id);
 }
 
 
-// PEDIDOS
-function abrirPedidos(){
-document.getElementById("pedidosBox").style.display="block";
-carregarMotoboys();
-}
 
-function fecharPedidos(){
-document.getElementById("pedidosBox").style.display="none";
-}
-
-function carregarMotoboys(){
-
-let html = '<option value="">Selecionar entregador</option>';
-
-for(let id in markers){
-html += `<option value="${id}">${id}</option>`;
-}
-
-document.getElementById("pedido_motoboy").innerHTML = html;
-
-}
-
-async function salvarPedido(){
-
-const pedido = {
-codigo: document.getElementById("pedido_codigo").value,
-cliente: document.getElementById("pedido_cliente").value,
-rua: document.getElementById("pedido_rua").value,
-bairro: document.getElementById("pedido_bairro").value,
-taxa: document.getElementById("pedido_taxa").value,
-motoboy: document.getElementById("pedido_motoboy").value
-};
-
-alert(
-"Pedido enviado!\n\n" +
-"Pedido: " + pedido.codigo + "\n" +
-"Cliente: " + pedido.cliente + "\n" +
-"Motoboy: " + pedido.motoboy
-);
-
-fecharPedidos();
-
-}
 
 
 
@@ -492,6 +450,56 @@ document.getElementById("list").innerHTML = html;
 // =========================================================
 setInterval(atualizar,3000);
 atualizar();
+
+
+// =========================================================
+// PEDIDOS
+// =========================================================
+
+function abrirPedidos(){
+document.getElementById("pedidosBox").style.display = "block";
+carregarMotoboys();
+}
+
+function fecharPedidos(){
+document.getElementById("pedidosBox").style.display = "none";
+}
+
+function carregarMotoboys(){
+
+let html = '<option value="">Selecionar entregador</option>';
+
+for(let id in markers){
+html += `<option value="${id}">${id}</option>`;
+}
+
+document.getElementById("pedido_motoboy").innerHTML = html;
+
+}
+
+function salvarPedido(){
+
+const pedido = {
+codigo: document.getElementById("pedido_codigo").value,
+cliente: document.getElementById("pedido_cliente").value,
+rua: document.getElementById("pedido_rua").value,
+bairro: document.getElementById("pedido_bairro").value,
+taxa: document.getElementById("pedido_taxa").value,
+motoboy: document.getElementById("pedido_motoboy").value
+};
+
+alert(
+"🚀 Pedido enviado!\n\n" +
+"Código: " + pedido.codigo + "\n" +
+"Cliente: " + pedido.cliente + "\n" +
+"Entregador: " + pedido.motoboy
+);
+
+fecharPedidos();
+
+}
+
+
 
 // FRASES RODAPÉ
 const frases = [
