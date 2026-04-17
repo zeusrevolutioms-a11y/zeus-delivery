@@ -288,10 +288,7 @@ line-height:1.5;
 <!-- PEDIDOS -->
 <div id="pedidosBox">
 
-<!-- ========================================================= -->
-<!-- 📋 LISTA PEDIDOS ENVIADOS -->
-<!-- ========================================================= -->
-<div id="listaPedidosBox"></div>
+
 
 <h2>📦 Novo Pedido</h2>
 
@@ -315,6 +312,11 @@ line-height:1.5;
 <button onclick="fecharPedidos()">Fechar</button>
 
 </div>
+
+<!-- ========================================================= -->
+<!-- 📋 LISTA PEDIDOS ENVIADOS -->
+<!-- ========================================================= -->
+<div id="listaPedidosBox"></div>
 
 
 <div id="footer">
@@ -634,9 +636,17 @@ document.getElementById("listaPedidosBox").style.display = "block";
 // PEDIDOS
 // =========================================================
 
+// =========================================================
+// 📦 ABRIR CENTRAL PEDIDOS
+// =========================================================
 function abrirPedidos(){
+
 document.getElementById("pedidosBox").style.display = "block";
+
 carregarMotoboys();
+
+listarPedidos(); // 🔥 faltava isso
+
 }
 
 function fecharPedidos(){
