@@ -214,6 +214,39 @@ res.send({error:"erro salvar pedido"});
 
 });
 
+
+
+// =========================================================
+// 📦 LISTAR PEDIDOS
+// =========================================================
+// =========================================================
+// 📦 LISTAR PEDIDOS DEBUG
+// =========================================================
+app.get('/pedidos', async(req,res)=>{
+
+try{
+
+const [rows] = await db.query(`
+SELECT * FROM pedidos
+ORDER BY id DESC
+LIMIT 30
+`);
+
+res.json(rows);
+
+}catch(e){
+
+console.log("ERRO /pedidos:", e);
+
+res.status(500).json({
+erro:true,
+mensagem:e.message
+});
+
+}
+
+});
+
 // =========================================================
 // 🚀 START
 // =========================================================
