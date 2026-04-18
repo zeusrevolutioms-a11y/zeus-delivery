@@ -396,8 +396,8 @@ let userId = "";
 let online = false;
 
 let gpsIniciado = false;
-let ultimaLat = -20.8113;
-let ultimaLng = -49.3758;
+let ultimaLat = null;
+let ultimaLng = null;
 
 /* ========================================================= */
 /* 🔋 SISTEMA MOBILE */
@@ -465,6 +465,17 @@ document.getElementById("painel").style.display="block";
 
 iniciarMapa();
 setOfflineVisual();
+
+/* ========================================================= */
+/* 🔥 EXTRA OPCIONAL NO window.onload */
+/* depois de setOfflineVisual(); */
+/* ========================================================= */
+
+document.addEventListener("click",()=>{
+if(online){
+ativarTelaLigada();
+}
+},{once:true});
 
 }
 
@@ -561,15 +572,19 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 }
 
 /* ========================================================= */
-/* GPS */
-/* ========================================================= */
-/* ========================================================= */
 /* 📍 GPS FORTE ANDROID / APK */
+/* 🔥 TROCAR FUNÇÃO INTEIRA startGPS() */
 /* ========================================================= */
 async function startGPS(){
 
 if(gpsIniciado) return;
 gpsIniciado = true;
+
+/* limpa antigo */
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+watchId = null;
+}
 
 watchId = navigator.geolocation.watchPosition((pos)=>{
 
@@ -585,15 +600,19 @@ document.getElementById("status").innerHTML =
 
 },{
 enableHighAccuracy:true,
-maximumAge:5000,
+maximumAge:3000,
 timeout:10000
 });
 
-if(gpsLoop) clearInterval(gpsLoop);
+/* loop reserva */
+if(gpsLoop){
+clearInterval(gpsLoop);
+}
 
 gpsLoop = setInterval(()=>{
 
 if(!online) return;
+if(!ultimaLat || !ultimaLng) return;
 
 enviarLocal(ultimaLat,ultimaLng);
 
@@ -631,6 +650,7 @@ document.getElementById("status").innerHTML =
 
 /* ========================================================= */
 /* BOTAO ONLINE OFFLINE */
+/* 🔥 TROCAR FUNÇÃO INTEIRA ficarLivre() */
 /* ========================================================= */
 async function ficarLivre(){
 
@@ -638,31 +658,46 @@ if(!online){
 
 online = true;
 
+/* 🔋 mantém tela ligada */
+await ativarTelaLigada();
+
+/* visual */
 setOnlineVisual();
 
+/* inicia gps */
+gpsIniciado = false;
 startGPS();
 
-/* força online instantâneo */
+/* força envio imediato se já tiver coords */
+if(ultimaLat && ultimaLng){
 enviarLocal(ultimaLat,ultimaLng);
+}
 
 return;
 }
 
-/* offline */
+/* ========================================================= */
+/* OFFLINE */
+/* ========================================================= */
 online = false;
-
 gpsIniciado = false;
 
+/* 🔋 libera tela */
+await soltarTelaLigada();
+
+/* mata watch */
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 watchId = null;
 }
 
+/* mata loop */
 if(gpsLoop){
 clearInterval(gpsLoop);
 gpsLoop = null;
 }
 
+/* avisa servidor */
 await fetch(API + '/offline',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
@@ -731,11 +766,20 @@ document.getElementById("menuLateral")
 
 /* ========================================================= */
 /* 📱 VOLTOU PRA TELA */
+/* 🔥 TROCAR BLOCO INTEIRO */
 /* ========================================================= */
 document.addEventListener("visibilitychange",()=>{
 
 if(!document.hidden && online){
 
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+watchId = null;
+}
+
+gpsIniciado = false;
+
+ativarTelaLigada();
 startGPS();
 
 }
@@ -754,6 +798,7 @@ document.getElementById("status").innerHTML =
 
 /* ========================================================= */
 /* 🌐 INTERNET VOLTOU */
+/* 🔥 TROCAR BLOCO INTEIRO */
 /* ========================================================= */
 window.addEventListener("online",()=>{
 
@@ -761,11 +806,13 @@ document.getElementById("status").innerHTML =
 "📡 Internet reconectada";
 
 if(online){
+
+gpsIniciado = false;
 startGPS();
+
 }
 
 });
-
 
 
 /* ========================================================= */
