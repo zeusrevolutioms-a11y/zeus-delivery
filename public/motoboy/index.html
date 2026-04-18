@@ -395,6 +395,10 @@ let marker = null;
 let userId = "";
 let online = false;
 
+let gpsIniciado = false;
+let ultimaLat = -20.8113;
+let ultimaLng = -49.3758;
+
 /* ========================================================= */
 /* 🔋 SISTEMA MOBILE */
 /* ========================================================= */
@@ -564,73 +568,34 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 /* ========================================================= */
 async function startGPS(){
 
-if(!navigator.geolocation){
-alert("Celular sem GPS");
-return;
-}
+if(gpsIniciado) return;
+gpsIniciado = true;
 
-/* limpa antigo */
-if(watchId){
-navigator.geolocation.clearWatch(watchId);
-watchId = null;
-}
-
-/* limpa loop antigo */
-if(gpsLoop){
-clearInterval(gpsLoop);
-gpsLoop = null;
-}
-
-/* pega posição inicial e força permissão */
-navigator.geolocation.getCurrentPosition((pos)=>{
-
-enviarLocal(
-pos.coords.latitude,
-pos.coords.longitude
-);
-
-/* rastreamento contínuo */
 watchId = navigator.geolocation.watchPosition((pos)=>{
 
-enviarLocal(
-pos.coords.latitude,
-pos.coords.longitude
-);
+ultimaLat = pos.coords.latitude;
+ultimaLng = pos.coords.longitude;
 
-},(erro)=>{
-
-document.getElementById("status").innerHTML =
-"❌ Ative localização";
-
-},{
-enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
-});
+enviarLocal(ultimaLat,ultimaLng);
 
 },()=>{
 
-alert("PERMITA GPS PARA FICAR ONLINE");
+document.getElementById("status").innerHTML =
+"⚠️ GPS indisponível";
 
 },{
 enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
+maximumAge:5000,
+timeout:10000
 });
 
-/* backup a cada 5 segundos */
+if(gpsLoop) clearInterval(gpsLoop);
+
 gpsLoop = setInterval(()=>{
 
 if(!online) return;
 
-navigator.geolocation.getCurrentPosition((pos)=>{
-
-enviarLocal(
-pos.coords.latitude,
-pos.coords.longitude
-);
-
-},()=>{});
+enviarLocal(ultimaLat,ultimaLng);
 
 },5000);
 
@@ -672,15 +637,21 @@ async function ficarLivre(){
 if(!online){
 
 online = true;
-await ativarTelaLigada();
+
 setOnlineVisual();
+
 startGPS();
+
+/* força online instantâneo */
+enviarLocal(ultimaLat,ultimaLng);
+
 return;
 }
 
-/* desligar */
+/* offline */
 online = false;
-await soltarTelaLigada();
+
+gpsIniciado = false;
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
