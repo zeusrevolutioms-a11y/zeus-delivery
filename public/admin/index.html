@@ -395,6 +395,7 @@ iconAnchor:[60,60]
 
 let markers = {};
 let animando = {};
+let cacheEndereco = {};
 
 // =========================================================
 // BUSCAR
@@ -429,15 +430,30 @@ markers[id].openPopup();
 // =========================================================
 async function endereco(lat,lng){
 
+const chave = lat.toFixed(3)+","+lng.toFixed(3);
+
+if(cacheEndereco[chave]){
+return cacheEndereco[chave];
+}
+
 try{
 
-const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+const r = await fetch(
+`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+);
+
 const j = await r.json();
 
-return j.display_name || "Sem endereço";
+const nome = j.display_name || "Sem endereço";
+
+cacheEndereco[chave] = nome;
+
+return nome;
 
 }catch{
-return "Sem endereço";
+
+return "Localizando...";
+
 }
 
 }
@@ -551,7 +567,7 @@ document.getElementById("list").innerHTML = html;
 // =========================================================
 // LOOP
 // =========================================================
-setInterval(atualizar,3000);
+setInterval(atualizar,1000);
 atualizar();
 
 
