@@ -559,40 +559,78 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 /* ========================================================= */
 /* GPS */
 /* ========================================================= */
-function startGPS(){
+/* ========================================================= */
+/* 📍 GPS FORTE ANDROID / APK */
+/* ========================================================= */
+async function startGPS(){
 
+if(!navigator.geolocation){
+alert("Celular sem GPS");
+return;
+}
+
+/* limpa antigo */
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 watchId = null;
 }
 
+/* limpa loop antigo */
+if(gpsLoop){
+clearInterval(gpsLoop);
+gpsLoop = null;
+}
+
+/* pega posição inicial e força permissão */
+navigator.geolocation.getCurrentPosition((pos)=>{
+
+enviarLocal(
+pos.coords.latitude,
+pos.coords.longitude
+);
+
+/* rastreamento contínuo */
 watchId = navigator.geolocation.watchPosition((pos)=>{
 
-enviarLocal(pos.coords.latitude,pos.coords.longitude);
+enviarLocal(
+pos.coords.latitude,
+pos.coords.longitude
+);
 
-},()=>{
+},(erro)=>{
 
-document.getElementById("status").innerHTML = "❌ GPS negado";
+document.getElementById("status").innerHTML =
+"❌ Ative localização";
 
 },{
 enableHighAccuracy:true,
+timeout:15000,
 maximumAge:0
 });
 
-/* loop reserva */
-if(gpsLoop){
-clearInterval(gpsLoop);
-}
+},()=>{
 
+alert("PERMITA GPS PARA FICAR ONLINE");
+
+},{
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:0
+});
+
+/* backup a cada 5 segundos */
 gpsLoop = setInterval(()=>{
 
 if(!online) return;
 
 navigator.geolocation.getCurrentPosition((pos)=>{
 
-enviarLocal(pos.coords.latitude,pos.coords.longitude);
+enviarLocal(
+pos.coords.latitude,
+pos.coords.longitude
+);
 
-});
+},()=>{});
 
 },5000);
 
