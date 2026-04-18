@@ -531,39 +531,37 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 /* ========================================================= */
 /* GPS */
 /* ========================================================= */
-function startGPS(){
+// GPS
+function startGPS(id){
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 }
 
-/* watch real */
-watchId = navigator.geolocation.watchPosition(async(pos)=>{
+watchId = navigator.geolocation.watchPosition((pos)=>{
 
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
-
-/* move marker local */
-if(marker){
-marker.setLatLng([lat,lng]);
-}
-
-/* envia servidor */
-await fetch(API+'/location',{
+fetch(API+'/location',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-id:userId,
-lat:lat,
-lng:lng
+id:id,
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
 })
 });
 
+document.getElementById("status").innerHTML="🟢 Online - Enviando localização";
+
+},()=>{
+
+document.getElementById("status").innerHTML="❌ GPS negado";
+
 },{
 enableHighAccuracy:true,
-maximumAge:0,
-timeout:10000
+maximumAge:0
 });
+
+}
 
 
 
