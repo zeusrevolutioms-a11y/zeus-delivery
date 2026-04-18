@@ -1,3 +1,9 @@
+<!-- ========================================================= -->
+<!-- 🏍️ ROTA SPEED - PAINEL MOTOBOY NOVO -->
+<!-- 📌 LOGIN + ENTRA NO MAPA ESTILO APP -->
+<!-- ✅ NÃO REMOVE REGISTRO / LOGIN -->
+<!-- ✅ APÓS ENTRAR VAI PRA TELA MAPA -->
+<!-- ========================================================= -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -5,8 +11,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ROTA SPEED</title>
 
-<style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
+<style>
 *{
 margin:0;
 padding:0;
@@ -16,15 +23,13 @@ box-sizing:border-box;
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#0f172a,#1e293b);
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+color:#fff;
 overflow:hidden;
 }
 
-/* LOADING */
+/* ========================================================= */
+/* 🔥 LOADING */
+/* ========================================================= */
 #loading{
 position:fixed;
 top:0;
@@ -36,12 +41,12 @@ display:flex;
 justify-content:center;
 align-items:center;
 flex-direction:column;
-z-index:9999;
+z-index:99999;
 }
 
 #loading img{
-width:130px;
-animation:pulse 1.5s infinite;
+width:120px;
+animation:pulse 1.4s infinite;
 }
 
 @keyframes pulse{
@@ -50,113 +55,302 @@ animation:pulse 1.5s infinite;
 100%{transform:scale(1);}
 }
 
-/* CARD */
-.card{
-background:#111827;
-padding:30px;
-border-radius:15px;
+/* ========================================================= */
+/* 🔐 LOGIN */
+/* ========================================================= */
+#loginBox{
 width:95%;
 max-width:360px;
-text-align:center;
-box-shadow:0 0 25px rgba(0,0,0,0.5);
+background:#111827;
+padding:28px;
+border-radius:18px;
+box-shadow:0 0 30px rgba(0,0,0,.5);
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+z-index:1000;
 }
 
 .logo{
 width:65px;
+display:block;
+margin:auto;
 margin-bottom:10px;
 }
 
 h1{
-font-size:28px;
+font-size:34px;
+text-align:center;
 margin-bottom:5px;
 }
 
-p{
+.sub{
+text-align:center;
 opacity:.8;
-margin-bottom:15px;
+margin-bottom:18px;
 }
 
 input{
 width:100%;
-padding:13px;
+padding:14px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 margin-bottom:10px;
 outline:none;
+font-size:15px;
 }
 
 button{
 width:100%;
 padding:14px;
 border:none;
-border-radius:10px;
-margin-top:8px;
+border-radius:12px;
+font-size:16px;
 font-weight:bold;
-font-size:15px;
 cursor:pointer;
-color:white;
+margin-top:8px;
+color:#fff;
 }
 
-.btn-login{
-background:#22c55e;
-}
-
-.btn-cad{
-background:#374151;
-}
-
-.btn-off{
-background:#ef4444;
-}
+.btn-login{background:#22c55e;}
+.btn-cad{background:#374151;}
 
 #status{
-margin-top:15px;
+margin-top:12px;
+text-align:center;
 font-size:14px;
 }
 
+/* ========================================================= */
+/* 🗺️ PAINEL APP */
+/* ========================================================= */
+#painel{
+display:none;
+width:100%;
+height:100vh;
+position:relative;
+}
+
+#map{
+width:100%;
+height:100%;
+}
+
+/* TOPO */
+#topo{
+position:absolute;
+top:15px;
+left:15px;
+right:15px;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+#menuBtn{
+width:56px;
+height:56px;
+border-radius:18px;
+background:#fff;
+color:#000;
+font-size:24px;
+border:none;
+}
+
+#saldo{
+background:#fff;
+color:#000;
+padding:16px 22px;
+border-radius:18px;
+font-size:22px;
+font-weight:bold;
+min-width:130px;
+text-align:center;
+}
+
+/* BOTOES LADO */
+#sideBtns{
+position:absolute;
+right:15px;
+top:95px;
+z-index:999;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.miniBtn{
+width:58px;
+height:58px;
+border-radius:50%;
+background:#fff;
+color:#000;
+font-size:22px;
+border:none;
+}
+
+/* FICAR LIVRE */
+#livreBox{
+position:absolute;
+left:15px;
+right:15px;
+bottom:110px;
+z-index:999;
+}
+
+#btnLivre{
+background:#22c55e;
+font-size:28px;
+padding:18px;
+border-radius:18px;
+}
+
+/* MENU BAIXO */
+#bottom{
+position:absolute;
+left:0;
+right:0;
+bottom:0;
+height:85px;
+background:#fff;
+color:#000;
+display:flex;
+justify-content:space-around;
+align-items:center;
+z-index:999;
+font-size:18px;
+font-weight:bold;
+}
+
+.tab{
+text-align:center;
+}
+
+/* MENU LATERAL */
+#menuLateral{
+position:absolute;
+top:0;
+left:-280px;
+width:260px;
+height:100%;
+background:#111827;
+z-index:2000;
+padding:20px;
+transition:.3s;
+}
+
+#menuLateral.ativo{
+left:0;
+}
+
+.menuItem{
+background:#1f2937;
+padding:14px;
+border-radius:12px;
+margin-bottom:10px;
+cursor:pointer;
+}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
+<!-- ========================================================= -->
+<!-- 🔥 LOADING -->
+<!-- ========================================================= -->
 <div id="loading">
 <img src="https://i.postimg.cc/XYprkPvs/Motinha.png">
 <h2>ROTA SPEED</h2>
-<p>Carregando Rotas...</p>
+<p>Carregando sistema...</p>
 </div>
 
-<!-- CARD -->
-<div class="card">
+<!-- ========================================================= -->
+<!-- 🔐 LOGIN -->
+<!-- ========================================================= -->
+<div id="loginBox">
 
 <img class="logo" src="https://i.postimg.cc/XYprkPvs/Motinha.png">
 
 <h1>ROTA SPEED</h1>
-<p>Rastreamento em Tempo Real</p>
+<div class="sub">Rastreamento em Tempo Real</div>
 
 <input id="id" placeholder="Seu ID">
 <input id="senha" type="password" placeholder="Senha">
 
 <button class="btn-login" onclick="login()">ENTRAR</button>
-
 <button class="btn-cad" onclick="register()">CRIAR CONTA</button>
-
-<button class="btn-off" onclick="desligar()">SAIR DE SERVIÇO</button>
 
 <div id="status"></div>
 
 </div>
 
+<!-- ========================================================= -->
+<!-- 🏍️ PAINEL -->
+<!-- ========================================================= -->
+<div id="painel">
+
+<div id="map"></div>
+
+<!-- MENU -->
+<div id="menuLateral">
+<h2 style="margin-bottom:15px;">🏍️ Menu</h2>
+
+<div class="menuItem">💰 Ganhos Hoje</div>
+<div class="menuItem">📦 Entregas</div>
+<div class="menuItem">⭐ Avaliações</div>
+<div class="menuItem" onclick="desligar()">🔴 Sair Serviço</div>
+
+</div>
+
+<!-- TOPO -->
+<div id="topo">
+
+<button id="menuBtn" onclick="abrirMenu()">☰</button>
+
+<div id="saldo">R$ 0,00</div>
+
+</div>
+
+<!-- LADO -->
+<div id="sideBtns">
+<button class="miniBtn">🔔</button>
+<button class="miniBtn" onclick="centralizar()">📍</button>
+</div>
+
+<!-- LIVRE -->
+<div id="livreBox">
+<button id="btnLivre" onclick="ficarLivre()">▶ Ficar Livre</button>
+</div>
+
+<!-- BAIXO -->
+<div id="bottom">
+
+<div class="tab">🗺️<br>Mapa</div>
+<div class="tab">📦<br>Entregas</div>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
-
 const API = window.location.origin;
-let watchId = null;
 
-// LOADING
+let watchId = null;
+let mapa = null;
+let marker = null;
+let userId = "";
+
+/* ========================================================= */
+/* LOADING */
+/* ========================================================= */
 window.onload = ()=>{
 
 setTimeout(()=>{
 document.getElementById("loading").style.display="none";
-},2200);
+},1800);
 
 const salvo = localStorage.getItem("motoboy_id");
 
@@ -164,26 +358,28 @@ if(salvo){
 document.getElementById("id").value = salvo;
 }
 
-};
+}
 
-// LOGIN
+/* ========================================================= */
+/* LOGIN */
+/* ========================================================= */
 async function login(){
 
-const id = document.getElementById("id").value;
-const senha = document.getElementById("senha").value;
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
 
 if(!id || !senha){
 alert("Preencha tudo");
 return;
 }
 
-const res = await fetch(API+'/login',{
+const r = await fetch(API+'/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id,senha})
 });
 
-const data = await res.json();
+const data = await r.json();
 
 if(data.error){
 alert(data.error);
@@ -191,63 +387,78 @@ return;
 }
 
 localStorage.setItem("motoboy_id",id);
+userId = id;
 
-startGPS(id);
+document.getElementById("loginBox").style.display="none";
+document.getElementById("painel").style.display="block";
+
+iniciarMapa();
+startGPS();
 
 }
 
-// CADASTRO
+/* ========================================================= */
+/* CADASTRO */
+/* ========================================================= */
 async function register(){
 
-const id = document.getElementById("id").value;
-const senha = document.getElementById("senha").value;
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
 
-if(!id || !senha){
-alert("Preencha tudo");
-return;
-}
-
-const res = await fetch(API+'/register',{
+const r = await fetch(API+'/register',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id,senha})
 });
 
-const data = await res.json();
+const data = await r.json();
 
 if(data.error){
 alert(data.error);
 return;
 }
 
-alert("Conta criada com sucesso 🚀");
+alert("Conta criada com sucesso!");
 
 }
 
-// GPS
-function startGPS(id){
+/* ========================================================= */
+/* MAPA */
+/* ========================================================= */
+function iniciarMapa(){
 
-if(watchId){
-navigator.geolocation.clearWatch(watchId);
+mapa = L.map('map').setView([-20.8113,-49.3758],15);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(mapa);
+
+marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
+
 }
 
-watchId = navigator.geolocation.watchPosition((pos)=>{
+/* ========================================================= */
+/* GPS */
+/* ========================================================= */
+function startGPS(){
 
-fetch(API+'/location',{
+watchId = navigator.geolocation.watchPosition(async(pos)=>{
+
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+
+marker.setLatLng([lat,lng]);
+mapa.setView([lat,lng]);
+
+await fetch(API+'/location',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-id:id,
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
+id:userId,
+lat,
+lng
 })
 });
-
-document.getElementById("status").innerHTML="🟢 Online - Enviando localização";
-
-},()=>{
-
-document.getElementById("status").innerHTML="❌ GPS negado";
 
 },{
 enableHighAccuracy:true,
@@ -256,10 +467,39 @@ maximumAge:0
 
 }
 
-// OFFLINE
-async function desligar(){
+/* ========================================================= */
+/* FICAR LIVRE */
+/* ========================================================= */
+function ficarLivre(){
 
-const id = document.getElementById("id").value;
+alert("🟢 Você está disponível para pedidos!");
+
+}
+
+/* ========================================================= */
+/* CENTRALIZAR */
+/* ========================================================= */
+function centralizar(){
+
+if(marker){
+mapa.setView(marker.getLatLng(),18);
+}
+
+}
+
+/* ========================================================= */
+/* MENU */
+/* ========================================================= */
+function abrirMenu(){
+
+document.getElementById("menuLateral").classList.toggle("ativo");
+
+}
+
+/* ========================================================= */
+/* OFFLINE */
+/* ========================================================= */
+async function desligar(){
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
@@ -268,13 +508,13 @@ navigator.geolocation.clearWatch(watchId);
 await fetch(API+'/offline',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id})
+body:JSON.stringify({id:userId})
 });
 
-document.getElementById("status").innerHTML="🔴 Offline";
+location.reload();
 
 }
-
 </script>
+
 </body>
 </html>
