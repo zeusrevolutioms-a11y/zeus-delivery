@@ -1,0 +1,21 @@
+{
+  "name": "ROTA SPEED",
+  "short_name": "ROTA SPEED",
+  "start_url": "/motoboy/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/XYprkPvs/Motinha.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.postimg.cc/XYprkPvs/Motinha.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
