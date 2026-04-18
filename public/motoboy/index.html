@@ -207,6 +207,39 @@ padding:18px;
 border-radius:18px;
 }
 
+
+/* ========================================================= */
+/* 📌 VISUAL BOTÃO STATUS */
+/* ========================================================= */
+#btnLivre{
+font-size:28px;
+padding:18px;
+border-radius:18px;
+background:#ef4444;   /* começa vermelho */
+color:#fff;
+font-weight:bold;
+transition:.3s;
+}
+
+
+/* ========================================================= */
+/* 📱 MOBILE */
+/* ========================================================= */
+@media(max-width:768px){
+
+.leaflet-top.leaflet-left{
+top:78px !important;
+left:12px !important;
+}
+
+#btnLivre{
+font-size:22px;
+padding:16px;
+}
+
+}
+
+
 /* MENU BAIXO */
 #footerMoto{
 position:absolute;
@@ -266,6 +299,8 @@ padding:14px;
 min-width:110px;
 }
 
+}
+
 /* MENU LATERAL */
 #menuLateral{
 position:absolute;
@@ -290,6 +325,18 @@ border-radius:12px;
 margin-bottom:10px;
 cursor:pointer;
 }
+
+
+<!-- ========================================================= -->
+<!-- 🎨 1) COLE NO SEU CSS -->
+<!-- 📌 MOVE ZOOM PRA BAIXO DO MENU -->
+<!-- ========================================================= -->
+.leaflet-top.leaflet-left{
+top:85px !important;
+left:15px !important;
+}
+
+
 </style>
 </head>
 <body>
@@ -432,10 +479,14 @@ document.getElementById("painel").style.display="block";
 
 iniciarMapa();
 
-/* NÃO FICA ONLINE AUTOMÁTICO */
-alert("Painel aberto. Clique em Ficar Livre para entrar online.");
+/* inicia offline */
+online = false;
+
+document.getElementById("btnLivre").innerHTML = "🔴 Offline";
+document.getElementById("btnLivre").style.background = "#ef4444";
 
 }
+
 
 /* ========================================================= */
 /* CADASTRO */
@@ -513,12 +564,10 @@ maximumAge:0
 /* ========================================================= */
 /* FICAR LIVRE */
 /* ========================================================= */
-function ficarLivre(){
+async function ficarLivre(){
 
-if(online){
-alert("Você já está online.");
-return;
-}
+/* se offline -> vira online */
+if(!online){
 
 online = true;
 
@@ -527,7 +576,28 @@ document.getElementById("btnLivre").style.background = "#16a34a";
 
 startGPS();
 
+return;
 }
+
+/* se online -> vira offline */
+online = false;
+
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+watchId = null;
+}
+
+await fetch(API+'/offline',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id:userId})
+});
+
+document.getElementById("btnLivre").innerHTML = "🔴 Offline";
+document.getElementById("btnLivre").style.background = "#ef4444";
+
+}
+
 /* ========================================================= */
 /* CENTRALIZAR */
 /* ========================================================= */
@@ -566,13 +636,14 @@ headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id:userId})
 });
 
-document.getElementById("btnLivre").innerHTML = "▶ Ficar Livre";
-document.getElementById("btnLivre").style.background = "#22c55e";
+document.getElementById("btnLivre").innerHTML = "🔴 Offline";
+document.getElementById("btnLivre").style.background = "#ef4444";
+
+document.getElementById("menuLateral").classList.remove("ativo");
 
 alert("Você saiu de serviço.");
 
 }
-
 
 /* ========================================================= */
 /* 💬 10) FRASES RODAPÉ */
