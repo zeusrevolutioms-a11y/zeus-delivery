@@ -151,18 +151,26 @@ res.send({status:"ok"});
 // =========================================================
 app.get('/motoboys', async(req,res)=>{
 
-const [rows] = await db.query(
-"SELECT * FROM motoboys"
-);
+/* 15 segundos sem atualizar = offline */
+const limite = Date.now() - 15000;
+
+const [rows] = await db.query(`
+SELECT *,
+CASE
+WHEN updated < ? THEN 0
+ELSE online
+END AS online_real
+FROM motoboys
+`,[limite]);
 
 let resposta = {};
 
 rows.forEach(m=>{
 
 resposta[m.id] = {
-    lat:m.lat,
-    lng:m.lng,
-    online:m.online == 1
+lat:m.lat,
+lng:m.lng,
+online:m.online_real == 1
 };
 
 });
@@ -170,7 +178,6 @@ resposta[m.id] = {
 res.send(resposta);
 
 });
-
 
 // =========================================================
 // 🚀 SALVAR PEDIDO
