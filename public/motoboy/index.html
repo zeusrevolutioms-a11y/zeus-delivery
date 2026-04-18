@@ -537,30 +537,68 @@ if(watchId){
 navigator.geolocation.clearWatch(watchId);
 }
 
+/* watch real */
 watchId = navigator.geolocation.watchPosition(async(pos)=>{
 
 const lat = pos.coords.latitude;
 const lng = pos.coords.longitude;
 
+/* move marker local */
+if(marker){
 marker.setLatLng([lat,lng]);
+}
+
+/* envia servidor */
+await fetch(API+'/location',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+id:userId,
+lat:lat,
+lng:lng
+})
+});
+
+},{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:10000
+});
+
+}
+
+/* ========================================================= */
+/* 🔁 LOOP EXTRA A CADA 5 SEGUNDOS */
+/* se navegador travar watchPosition */
+/* ========================================================= */
+setInterval(()=>{
+
+if(!online) return;
+
+navigator.geolocation.getCurrentPosition(async(pos)=>{
+
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+
+if(marker){
+marker.setLatLng([lat,lng]);
+}
 
 await fetch(API+'/location',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
 id:userId,
-lat,
-lng
+lat:lat,
+lng:lng
 })
 });
 
-},{
-enableHighAccuracy:true,
-maximumAge:0
 });
 
-}
+},5000);
 
+}
 /* ========================================================= */
 /* FICAR LIVRE */
 /* ========================================================= */
