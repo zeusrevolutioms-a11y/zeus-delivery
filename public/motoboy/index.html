@@ -390,6 +390,45 @@ let userId = "";
 let online = false;
 
 /* ========================================================= */
+/* 🔋 SISTEMA MOBILE */
+/* ========================================================= */
+let wakeLock = null;
+let ultimoLogin = 0;
+
+
+
+/* ========================================================= */
+/* 🔋 MANTER TELA LIGADA */
+/* ========================================================= */
+async function ativarTelaLigada(){
+
+try{
+
+if('wakeLock' in navigator){
+wakeLock = await navigator.wakeLock.request('screen');
+}
+
+}catch(e){}
+
+}
+
+/* ========================================================= */
+/* 🔋 LIBERAR TELA */
+/* ========================================================= */
+async function soltarTelaLigada(){
+
+try{
+
+if(wakeLock){
+await wakeLock.release();
+wakeLock = null;
+}
+
+}catch(e){}
+
+}
+
+/* ========================================================= */
 /* LOADING */
 /* ========================================================= */
 window.onload = ()=>{
@@ -402,6 +441,21 @@ const salvo = localStorage.getItem("motoboy_id");
 
 if(salvo){
 document.getElementById("id").value = salvo;
+}
+
+
+const logado = localStorage.getItem("motoboy_logado");
+
+if(logado == "sim" && salvo){
+
+userId = salvo;
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("painel").style.display="block";
+
+iniciarMapa();
+setOfflineVisual();
+
 }
 
 };
@@ -433,6 +487,8 @@ return;
 }
 
 localStorage.setItem("motoboy_id",id);
+localStorage.setItem("motoboy_logado","sim");
+
 userId = id;
 
 /* abre painel */
@@ -572,6 +628,7 @@ async function ficarLivre(){
 if(!online){
 
 online = true;
+await ativarTelaLigada();
 setOnlineVisual();
 startGPS();
 return;
@@ -579,6 +636,7 @@ return;
 
 /* desligar */
 online = false;
+await soltarTelaLigada();
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
@@ -654,6 +712,46 @@ document.getElementById("menuLateral")
 .classList.remove("ativo");
 
 }
+
+
+/* ========================================================= */
+/* 📱 VOLTOU PRA TELA */
+/* ========================================================= */
+document.addEventListener("visibilitychange",()=>{
+
+if(!document.hidden && online){
+
+startGPS();
+
+}
+
+});
+
+/* ========================================================= */
+/* 🌐 INTERNET OFF */
+/* ========================================================= */
+window.addEventListener("offline",()=>{
+
+document.getElementById("status").innerHTML =
+"📡 Sem internet";
+
+});
+
+/* ========================================================= */
+/* 🌐 INTERNET VOLTOU */
+/* ========================================================= */
+window.addEventListener("online",()=>{
+
+document.getElementById("status").innerHTML =
+"📡 Internet reconectada";
+
+if(online){
+startGPS();
+}
+
+});
+
+
 
 /* ========================================================= */
 /* FRASES */
