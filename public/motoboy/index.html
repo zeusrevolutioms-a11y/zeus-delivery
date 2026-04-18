@@ -208,24 +208,62 @@ border-radius:18px;
 }
 
 /* MENU BAIXO */
-#bottom{
+#footerMoto{
 position:absolute;
 left:0;
 right:0;
 bottom:0;
-height:85px;
-background:#fff;
-color:#000;
+height:42px;
+background:#111827;
 display:flex;
-justify-content:space-around;
 align-items:center;
+justify-content:center;
 z-index:999;
-font-size:18px;
+font-size:14px;
+color:#fff;
 font-weight:bold;
 }
 
-.tab{
-text-align:center;
+
+
+/* botão ficar livre sobe um pouco */
+#livreBox{
+position:absolute;
+left:15px;
+right:15px;
+bottom:58px;
+z-index:999;
+}
+
+
+
+/* menu lateral altura total */
+#menuLateral{
+position:absolute;
+top:0;
+left:-280px;
+width:260px;
+height:100%;
+background:#111827;
+z-index:2000;
+padding:20px;
+transition:.3s;
+}
+
+
+
+/* mobile */
+@media(max-width:768px){
+
+#btnLivre{
+font-size:22px;
+padding:16px;
+}
+
+#saldo{
+font-size:18px;
+padding:14px;
+min-width:110px;
 }
 
 /* MENU LATERAL */
@@ -324,11 +362,8 @@ cursor:pointer;
 </div>
 
 <!-- BAIXO -->
-<div id="bottom">
-
-<div class="tab">🗺️<br>Mapa</div>
-<div class="tab">📦<br>Entregas</div>
-
+<div id="footerMoto">
+<span id="fraseMoto">Conectando entregadores em tempo real</span>
 </div>
 
 </div>
@@ -342,6 +377,9 @@ let watchId = null;
 let mapa = null;
 let marker = null;
 let userId = "";
+let online = false;
+
+
 
 /* ========================================================= */
 /* LOADING */
@@ -393,7 +431,9 @@ document.getElementById("loginBox").style.display="none";
 document.getElementById("painel").style.display="block";
 
 iniciarMapa();
-startGPS();
+
+/* NÃO FICA ONLINE AUTOMÁTICO */
+alert("Painel aberto. Clique em Ficar Livre para entrar online.");
 
 }
 
@@ -442,13 +482,16 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 /* ========================================================= */
 function startGPS(){
 
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+}
+
 watchId = navigator.geolocation.watchPosition(async(pos)=>{
 
 const lat = pos.coords.latitude;
 const lng = pos.coords.longitude;
 
 marker.setLatLng([lat,lng]);
-mapa.setView([lat,lng]);
 
 await fetch(API+'/location',{
 method:'POST',
@@ -472,10 +515,19 @@ maximumAge:0
 /* ========================================================= */
 function ficarLivre(){
 
-alert("🟢 Você está disponível para pedidos!");
-
+if(online){
+alert("Você já está online.");
+return;
 }
 
+online = true;
+
+document.getElementById("btnLivre").innerHTML = "🟢 Online";
+document.getElementById("btnLivre").style.background = "#16a34a";
+
+startGPS();
+
+}
 /* ========================================================= */
 /* CENTRALIZAR */
 /* ========================================================= */
@@ -501,8 +553,11 @@ document.getElementById("menuLateral").classList.toggle("ativo");
 /* ========================================================= */
 async function desligar(){
 
+online = false;
+
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
+watchId = null;
 }
 
 await fetch(API+'/offline',{
@@ -511,9 +566,44 @@ headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id:userId})
 });
 
-location.reload();
+document.getElementById("btnLivre").innerHTML = "▶ Ficar Livre";
+document.getElementById("btnLivre").style.background = "#22c55e";
+
+alert("Você saiu de serviço.");
 
 }
+
+
+/* ========================================================= */
+/* 💬 10) FRASES RODAPÉ */
+/* 📌 COLE NO FINAL DO SCRIPT */
+/* ========================================================= */
+const frasesMoto = [
+
+"Conectando entregadores em tempo real",
+"Ganhe mais ficando online",
+"Entregas rápidas. Clientes felizes.",
+"Seu mapa atualizado ao vivo",
+"ROTA SPEED © 2026",
+"Fique livre e receba pedidos"
+
+];
+
+let fraseIndexMoto = 0;
+
+setInterval(()=>{
+
+fraseIndexMoto++;
+
+if(fraseIndexMoto >= frasesMoto.length){
+fraseIndexMoto = 0;
+}
+
+document.getElementById("fraseMoto").innerText =
+frasesMoto[fraseIndexMoto];
+
+},4000);
+
 </script>
 
 </body>
