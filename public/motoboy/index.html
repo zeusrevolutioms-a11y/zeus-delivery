@@ -479,12 +479,13 @@ document.getElementById("painel").style.display="block";
 
 iniciarMapa();
 
-/* inicia offline */
-online = false;
+/* entra online automático */
+online = true;
 
-document.getElementById("btnLivre").innerHTML = "🔴 Offline";
-document.getElementById("btnLivre").style.background = "#ef4444";
+document.getElementById("btnLivre").innerHTML = "🟢 Online";
+document.getElementById("btnLivre").style.background = "#16a34a";
 
+startGPS();
 }
 
 
@@ -531,37 +532,39 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 /* ========================================================= */
 /* GPS */
 /* ========================================================= */
-// GPS
-function startGPS(id){
+function startGPS(){
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 }
 
-watchId = navigator.geolocation.watchPosition((pos)=>{
+/* watch real */
+watchId = navigator.geolocation.watchPosition(async(pos)=>{
 
-fetch(API+'/location',{
+const lat = pos.coords.latitude;
+const lng = pos.coords.longitude;
+
+/* move marker local */
+if(marker){
+marker.setLatLng([lat,lng]);
+}
+
+/* envia servidor */
+await fetch(API+'/location',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({
-id:id,
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
+id:userId,
+lat:lat,
+lng:lng
 })
 });
 
-document.getElementById("status").innerHTML="🟢 Online - Enviando localização";
-
-},()=>{
-
-document.getElementById("status").innerHTML="❌ GPS negado";
-
 },{
 enableHighAccuracy:true,
-maximumAge:0
+maximumAge:0,
+timeout:10000
 });
-
-}
 
 
 
@@ -610,7 +613,7 @@ online = true;
 document.getElementById("btnLivre").innerHTML = "🟢 Online";
 document.getElementById("btnLivre").style.background = "#16a34a";
 
-startGPS(id)();
+startGPS();
 
 return;
 }
