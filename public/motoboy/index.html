@@ -5,8 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>ROTA SPEED</title>
 
+<!-- ========================================================= -->
+<!-- 🗺️ LEAFLET MAPA -->
+<!-- ========================================================= -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
 <style>
 
+/* ========================================================= */
+/* RESET */
+/* ========================================================= */
 *{
 margin:0;
 padding:0;
@@ -14,17 +22,16 @@ box-sizing:border-box;
 }
 
 body{
-font-family:Arial;
-background:linear-gradient(135deg,#0f172a,#1e293b);
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+font-family:Arial,Helvetica,sans-serif;
+background:#0f172a;
+color:#fff;
 overflow:hidden;
+height:100vh;
 }
 
-/* LOADING */
+/* ========================================================= */
+/* 🔥 LOADING */
+/* ========================================================= */
 #loading{
 position:fixed;
 top:0;
@@ -36,122 +43,355 @@ display:flex;
 justify-content:center;
 align-items:center;
 flex-direction:column;
-z-index:9999;
+z-index:99999;
 }
 
 #loading img{
 width:130px;
-animation:pulse 1.5s infinite;
+animation:pulse 1.4s infinite;
+margin-bottom:10px;
 }
 
 @keyframes pulse{
 0%{transform:scale(1);}
-50%{transform:scale(1.1);}
+50%{transform:scale(1.08);}
 100%{transform:scale(1);}
 }
 
-/* CARD */
-.card{
-background:#111827;
-padding:30px;
-border-radius:15px;
+/* ========================================================= */
+/* 🔐 LOGIN */
+/* ========================================================= */
+#loginBox{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
 width:95%;
 max-width:360px;
-text-align:center;
-box-shadow:0 0 25px rgba(0,0,0,0.5);
+background:#111827;
+padding:28px;
+border-radius:18px;
+box-shadow:0 0 30px rgba(0,0,0,.45);
+z-index:5000;
 }
 
 .logo{
-width:65px;
+width:70px;
+display:block;
+margin:auto;
 margin-bottom:10px;
 }
 
 h1{
-font-size:28px;
+font-size:30px;
+text-align:center;
 margin-bottom:5px;
 }
 
-p{
+.sub{
+text-align:center;
 opacity:.8;
-margin-bottom:15px;
+margin-bottom:18px;
 }
 
 input{
 width:100%;
-padding:13px;
+padding:14px;
 border:none;
-border-radius:10px;
-margin-bottom:10px;
 outline:none;
+border-radius:12px;
+margin-bottom:10px;
+font-size:15px;
 }
 
 button{
 width:100%;
 padding:14px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 margin-top:8px;
-font-weight:bold;
-font-size:15px;
 cursor:pointer;
-color:white;
+font-size:16px;
+font-weight:bold;
+color:#fff;
 }
 
-.btn-login{
-background:#22c55e;
-}
-
-.btn-cad{
-background:#374151;
-}
-
-.btn-off{
-background:#ef4444;
-}
+.btn-login{background:#22c55e;}
+.btn-cad{background:#374151;}
 
 #status{
-margin-top:15px;
+margin-top:12px;
+text-align:center;
 font-size:14px;
+}
+
+/* ========================================================= */
+/* 🏍️ PAINEL */
+/* ========================================================= */
+#painel{
+display:none;
+width:100%;
+height:100vh;
+position:relative;
+}
+
+#map{
+width:100%;
+height:100%;
+}
+
+/* ========================================================= */
+/* TOPO */
+/* ========================================================= */
+#topo{
+position:absolute;
+top:15px;
+left:15px;
+right:15px;
+z-index:999;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+#menuBtn{
+width:56px;
+height:56px;
+border:none;
+border-radius:18px;
+background:#fff;
+color:#000;
+font-size:24px;
+cursor:pointer;
+}
+
+#saldo{
+background:#fff;
+color:#000;
+padding:16px 20px;
+border-radius:18px;
+font-size:22px;
+font-weight:bold;
+min-width:130px;
+text-align:center;
+}
+
+/* ========================================================= */
+/* BOTOES DIREITA */
+/* ========================================================= */
+#sideBtns{
+position:absolute;
+right:15px;
+top:95px;
+z-index:999;
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.miniBtn{
+width:58px;
+height:58px;
+border-radius:50%;
+background:#fff;
+color:#000;
+font-size:22px;
+border:none;
+cursor:pointer;
+}
+
+/* ========================================================= */
+/* BOTAO ONLINE OFFLINE */
+/* ========================================================= */
+#livreBox{
+position:absolute;
+left:15px;
+right:15px;
+bottom:58px;
+z-index:999;
+}
+
+#btnLivre{
+width:100%;
+padding:18px;
+font-size:30px;
+font-weight:bold;
+border:none;
+border-radius:18px;
+background:#ef4444;
+color:#fff;
+transition:.3s;
+cursor:pointer;
+}
+
+/* ========================================================= */
+/* RODAPE */
+/* ========================================================= */
+#footerMoto{
+position:absolute;
+left:0;
+right:0;
+bottom:0;
+height:42px;
+background:#111827;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:14px;
+font-weight:bold;
+z-index:999;
+}
+
+/* ========================================================= */
+/* MENU LATERAL */
+/* ========================================================= */
+#menuLateral{
+position:absolute;
+top:0;
+left:-280px;
+width:260px;
+height:100%;
+background:#111827;
+padding:20px;
+z-index:2000;
+transition:.3s;
+}
+
+#menuLateral.ativo{
+left:0;
+}
+
+.menuItem{
+background:#1f2937;
+padding:14px;
+border-radius:12px;
+margin-bottom:10px;
+cursor:pointer;
+}
+
+/* ========================================================= */
+/* ZOOM MAPA */
+/* ========================================================= */
+.leaflet-top.leaflet-left{
+top:85px !important;
+left:15px !important;
+}
+
+/* ========================================================= */
+/* MOBILE */
+/* ========================================================= */
+@media(max-width:768px){
+
+#saldo{
+font-size:18px;
+padding:14px;
+min-width:110px;
+}
+
+#btnLivre{
+font-size:24px;
+padding:16px;
+}
+
 }
 
 </style>
 </head>
 <body>
 
+<!-- ========================================================= -->
 <!-- LOADING -->
+<!-- ========================================================= -->
 <div id="loading">
 <img src="https://i.postimg.cc/XYprkPvs/Motinha.png">
 <h2>ROTA SPEED</h2>
 <p>Carregando Rotas...</p>
 </div>
 
-<!-- CARD -->
-<div class="card">
+<!-- ========================================================= -->
+<!-- LOGIN -->
+<!-- ========================================================= -->
+<div id="loginBox">
 
 <img class="logo" src="https://i.postimg.cc/XYprkPvs/Motinha.png">
 
 <h1>ROTA SPEED</h1>
-<p>Rastreamento em Tempo Real</p>
+<div class="sub">Rastreamento em Tempo Real</div>
 
 <input id="id" placeholder="Seu ID">
 <input id="senha" type="password" placeholder="Senha">
 
 <button class="btn-login" onclick="login()">ENTRAR</button>
-
 <button class="btn-cad" onclick="register()">CRIAR CONTA</button>
-
-<button class="btn-off" onclick="desligar()">SAIR DE SERVIÇO</button>
 
 <div id="status"></div>
 
 </div>
 
+<!-- ========================================================= -->
+<!-- PAINEL -->
+<!-- ========================================================= -->
+<div id="painel">
+
+<div id="map"></div>
+
+<!-- MENU -->
+<div id="menuLateral">
+<h2 style="margin-bottom:15px;">🏍️ Menu</h2>
+
+<div class="menuItem">💰 Ganhos Hoje</div>
+<div class="menuItem">📦 Entregas</div>
+<div class="menuItem">⭐ Avaliações</div>
+<div class="menuItem" onclick="desligar()">🔴 Sair Serviço</div>
+
+</div>
+
+<!-- TOPO -->
+<div id="topo">
+
+<button id="menuBtn" onclick="abrirMenu()">☰</button>
+
+<div id="saldo">R$ 0,00</div>
+
+</div>
+
+<!-- LADO -->
+<div id="sideBtns">
+<button class="miniBtn">🔔</button>
+<button class="miniBtn" onclick="centralizar()">📍</button>
+</div>
+
+<!-- ONLINE OFFLINE -->
+<div id="livreBox">
+<button id="btnLivre" onclick="ficarLivre()">🔴 Offline</button>
+</div>
+
+<!-- RODAPE -->
+<div id="footerMoto">
+<span id="fraseMoto">Conectando entregadores em tempo real</span>
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script>
 
+/* ========================================================= */
+/* VARIAVEIS */
+/* ========================================================= */
 const API = window.location.origin;
-let watchId = null;
 
-// LOADING
+let watchId = null;
+let gpsLoop = null;
+let mapa = null;
+let marker = null;
+let userId = "";
+let online = false;
+
+/* ========================================================= */
+/* LOADING */
+/* ========================================================= */
 window.onload = ()=>{
 
 setTimeout(()=>{
@@ -166,18 +406,20 @@ document.getElementById("id").value = salvo;
 
 };
 
-// LOGIN
+/* ========================================================= */
+/* LOGIN */
+/* ========================================================= */
 async function login(){
 
-const id = document.getElementById("id").value;
-const senha = document.getElementById("senha").value;
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
 
 if(!id || !senha){
 alert("Preencha tudo");
 return;
 }
 
-const res = await fetch(API+'/login',{
+const res = await fetch(API + '/login',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id,senha})
@@ -191,23 +433,34 @@ return;
 }
 
 localStorage.setItem("motoboy_id",id);
+userId = id;
 
-startGPS(id);
+/* abre painel */
+document.getElementById("loginBox").style.display="none";
+document.getElementById("painel").style.display="block";
+
+/* inicia mapa */
+iniciarMapa();
+
+/* começa offline */
+setOfflineVisual();
 
 }
 
-// CADASTRO
+/* ========================================================= */
+/* CADASTRO */
+/* ========================================================= */
 async function register(){
 
-const id = document.getElementById("id").value;
-const senha = document.getElementById("senha").value;
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
 
 if(!id || !senha){
 alert("Preencha tudo");
 return;
 }
 
-const res = await fetch(API+'/register',{
+const res = await fetch(API + '/register',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id,senha})
@@ -224,56 +477,210 @@ alert("Conta criada com sucesso 🚀");
 
 }
 
-// GPS
-function startGPS(id){
+/* ========================================================= */
+/* MAPA */
+/* ========================================================= */
+function iniciarMapa(){
+
+if(mapa) return;
+
+mapa = L.map('map').setView([-20.8113,-49.3758],15);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(mapa);
+
+marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
+
+}
+
+/* ========================================================= */
+/* GPS */
+/* ========================================================= */
+function startGPS(){
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
+watchId = null;
 }
 
 watchId = navigator.geolocation.watchPosition((pos)=>{
 
-fetch(API+'/location',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-id:id,
-lat:pos.coords.latitude,
-lng:pos.coords.longitude
-})
-});
-
-document.getElementById("status").innerHTML="🟢 Online - Enviando localização";
+enviarLocal(pos.coords.latitude,pos.coords.longitude);
 
 },()=>{
 
-document.getElementById("status").innerHTML="❌ GPS negado";
+document.getElementById("status").innerHTML = "❌ GPS negado";
 
 },{
 enableHighAccuracy:true,
 maximumAge:0
 });
 
+/* loop reserva */
+if(gpsLoop){
+clearInterval(gpsLoop);
 }
 
-// OFFLINE
-async function desligar(){
+gpsLoop = setInterval(()=>{
 
-const id = document.getElementById("id").value;
+if(!online) return;
+
+navigator.geolocation.getCurrentPosition((pos)=>{
+
+enviarLocal(pos.coords.latitude,pos.coords.longitude);
+
+});
+
+},5000);
+
+}
+
+/* ========================================================= */
+/* ENVIAR LOCAL */
+/* ========================================================= */
+function enviarLocal(lat,lng){
+
+if(marker){
+marker.setLatLng([lat,lng]);
+}
+
+if(mapa){
+mapa.setView([lat,lng],18);
+}
+
+fetch(API + '/location',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+id:userId,
+lat:lat,
+lng:lng
+})
+});
+
+document.getElementById("status").innerHTML =
+"🟢 Online - Enviando localização";
+
+}
+
+/* ========================================================= */
+/* BOTAO ONLINE OFFLINE */
+/* ========================================================= */
+async function ficarLivre(){
+
+if(!online){
+
+online = true;
+setOnlineVisual();
+startGPS();
+return;
+}
+
+/* desligar */
+online = false;
 
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
+watchId = null;
 }
 
-await fetch(API+'/offline',{
+if(gpsLoop){
+clearInterval(gpsLoop);
+gpsLoop = null;
+}
+
+await fetch(API + '/offline',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id})
+body:JSON.stringify({id:userId})
 });
 
-document.getElementById("status").innerHTML="🔴 Offline";
+setOfflineVisual();
 
 }
+
+/* ========================================================= */
+/* VISUAL ONLINE */
+/* ========================================================= */
+function setOnlineVisual(){
+
+document.getElementById("btnLivre").innerHTML = "🟢 Online";
+document.getElementById("btnLivre").style.background = "#16a34a";
+
+}
+
+/* ========================================================= */
+/* VISUAL OFFLINE */
+/* ========================================================= */
+function setOfflineVisual(){
+
+document.getElementById("btnLivre").innerHTML = "🔴 Offline";
+document.getElementById("btnLivre").style.background = "#ef4444";
+
+document.getElementById("status").innerHTML =
+"🔴 Offline";
+
+}
+
+/* ========================================================= */
+/* CENTRALIZAR */
+/* ========================================================= */
+function centralizar(){
+
+if(marker && mapa){
+mapa.setView(marker.getLatLng(),18);
+}
+
+}
+
+/* ========================================================= */
+/* MENU */
+/* ========================================================= */
+function abrirMenu(){
+
+document.getElementById("menuLateral").classList.toggle("ativo");
+
+}
+
+/* ========================================================= */
+/* SAIR SERVIÇO */
+/* ========================================================= */
+async function desligar(){
+
+await ficarLivre();
+
+document.getElementById("menuLateral")
+.classList.remove("ativo");
+
+}
+
+/* ========================================================= */
+/* FRASES */
+/* ========================================================= */
+const frasesMoto = [
+"Conectando entregadores em tempo real",
+"Ganhe mais ficando online",
+"Entregas rápidas. Clientes felizes.",
+"Seu mapa atualizado ao vivo",
+"ROTA SPEED © 2026",
+"Fique livre e receba pedidos"
+];
+
+let fraseIndexMoto = 0;
+
+setInterval(()=>{
+
+fraseIndexMoto++;
+
+if(fraseIndexMoto >= frasesMoto.length){
+fraseIndexMoto = 0;
+}
+
+document.getElementById("fraseMoto").innerText =
+frasesMoto[fraseIndexMoto];
+
+},4000);
 
 </script>
 </body>
