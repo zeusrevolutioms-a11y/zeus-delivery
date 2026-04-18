@@ -386,7 +386,10 @@ padding:16px;
 /* ========================================================= */
 /* VARIAVEIS */
 /* ========================================================= */
-const API = window.location.origin;
+const API =
+window.location.protocol === "capacitor:"
+? "https://zeus-delivery.onrender.com"
+: window.location.origin;
 
 let watchId = null;
 let gpsLoop = null;
