@@ -560,9 +560,7 @@ marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
 
 }
 
-/* ========================================================= */
-/* GPS */
-/* ========================================================= */
+
 /* ========================================================= */
 /* 📍 GPS FORTE ANDROID / APK */
 /* ========================================================= */
@@ -589,6 +587,7 @@ maximumAge:5000,
 timeout:10000
 });
 
+/* heartbeat */
 if(gpsLoop) clearInterval(gpsLoop);
 
 gpsLoop = setInterval(()=>{
@@ -597,9 +596,11 @@ if(!online) return;
 
 enviarLocal(ultimaLat,ultimaLng);
 
-},5000);
+},15000);
 
 }
+
+
 
 /* ========================================================= */
 /* ENVIAR LOCAL */
@@ -739,14 +740,15 @@ document.getElementById("menuLateral")
 /* ========================================================= */
 /* 📱 VOLTOU PRA TELA */
 /* ========================================================= */
-document.addEventListener("visibilitychange",()=>{
+document.addEventListener("visibilitychange", async()=>{
 
 if(!document.hidden && online){
+
+await ativarTelaLigada();
 
 gpsIniciado = false;
 startGPS();
 
-/* reforça online ao voltar */
 enviarLocal(ultimaLat,ultimaLng);
 
 }
