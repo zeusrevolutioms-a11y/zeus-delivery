@@ -505,7 +505,21 @@ for(let id in data){
 const m = data[id];
 
 // endereço sempre pega
-const end = await endereco(m.lat,m.lng);
+let end = cacheEndereco[id] || "Localizando...";
+
+endereco(m.lat,m.lng).then(nome=>{
+cacheEndereco[id] = nome;
+
+if(markers[id]){
+const popupHtml = `
+🏍️ Motoboy: ${id}<br>
+📍 ${nome}<br>
+${m.online ? '🟢 ONLINE':'🔴 OFFLINE'}
+`;
+
+markers[id].setPopupContent(popupHtml);
+}
+});
 
 // ===============================
 // LISTA: só online
@@ -567,7 +581,7 @@ document.getElementById("list").innerHTML = html;
 // =========================================================
 // LOOP
 // =========================================================
-setInterval(atualizar,1000);
+setInterval(atualizar,2500);
 atualizar();
 
 
