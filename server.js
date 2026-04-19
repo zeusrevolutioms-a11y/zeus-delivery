@@ -154,7 +154,7 @@ app.get('/motoboys', async(req,res)=>{
 const agora = Date.now();
 
 /* tolerância real */
-const limite = agora - 90000;
+const limite = agora - 300000;
 
 const [rows] = await db.query(`
 SELECT id,lat,lng,online,updated
