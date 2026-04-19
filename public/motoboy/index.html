@@ -648,21 +648,38 @@ setOnlineVisual();
 /* manter tela ligada */
 await ativarTelaLigada();
 
-/* iniciar gps web normal */
+/* iniciar gps web */
 startGPS();
 
-/* envia ponto inicial */
+/* enviar ponto inicial */
 enviarLocal(ultimaLat, ultimaLng);
 
-/* iniciar service android real */
+/* plugin android protegido */
 if(window.Capacitor){
 
 try{
 
+const pluginOk =
+Capacitor.Plugins &&
+Capacitor.Plugins.RotaSpeed &&
+typeof Capacitor.Plugins.RotaSpeed.startService === "function";
+
+if(pluginOk){
+
 await Capacitor.Plugins.RotaSpeed.startService();
 
+console.log("Service iniciado");
+
+}else{
+
+console.log("Plugin RotaSpeed não encontrado");
+
+}
+
 }catch(e){
-console.log(e);
+
+console.log("Erro startService:", e);
+
 }
 
 }
@@ -679,13 +696,13 @@ gpsIniciado = false;
 /* liberar tela */
 await soltarTelaLigada();
 
-/* parar gps web */
+/* parar gps navegador */
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 watchId = null;
 }
 
-/* parar heartbeat */
+/* parar loop */
 if(gpsLoop){
 clearInterval(gpsLoop);
 gpsLoop = null;
@@ -702,17 +719,32 @@ id:userId
 })
 });
 
-}catch(e){}
+}catch(e){
+console.log(e);
+}
 
-/* parar service android */
+/* parar plugin android protegido */
 if(window.Capacitor){
 
 try{
 
+const pluginOk =
+Capacitor.Plugins &&
+Capacitor.Plugins.RotaSpeed &&
+typeof Capacitor.Plugins.RotaSpeed.stopService === "function";
+
+if(pluginOk){
+
 await Capacitor.Plugins.RotaSpeed.stopService();
 
+console.log("Service parado");
+
+}
+
 }catch(e){
-console.log(e);
+
+console.log("Erro stopService:", e);
+
 }
 
 }
