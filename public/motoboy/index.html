@@ -635,6 +635,9 @@ document.getElementById("status").innerHTML =
 /* ========================================================= */
 async function ficarLivre(){
 
+/* =========================
+🟢 FICAR ONLINE
+========================= */
 if(!online){
 
 online = true;
@@ -642,76 +645,83 @@ online = true;
 /* visual */
 setOnlineVisual();
 
-/* tela ligada opcional */
+/* manter tela ligada */
 await ativarTelaLigada();
 
-/* inicia JS fallback */
+/* iniciar gps web normal */
 startGPS();
-enviarLocal(ultimaLat,ultimaLng);
 
-/* inicia serviço Android real */
+/* envia ponto inicial */
+enviarLocal(ultimaLat, ultimaLng);
+
+/* iniciar service android real */
 if(window.Capacitor){
 
 try{
 
-const { Capacitor } = window;
+await Capacitor.Plugins.RotaSpeed.startService();
 
-if(Capacitor.isNativePlatform()){
-
-window.location.href = "rotaspeed://startgps";
-
+}catch(e){
+console.log(e);
 }
-
-}catch(e){}
 
 }
 
 return;
 }
 
-/* OFFLINE */
-
+/* =========================
+🔴 FICAR OFFLINE
+========================= */
 online = false;
 gpsIniciado = false;
 
+/* liberar tela */
 await soltarTelaLigada();
 
+/* parar gps web */
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 watchId = null;
 }
 
+/* parar heartbeat */
 if(gpsLoop){
 clearInterval(gpsLoop);
 gpsLoop = null;
 }
 
+/* avisar servidor */
+try{
+
 await fetch(API + '/offline',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id:userId})
+body:JSON.stringify({
+id:userId
+})
 });
 
-/* parar serviço Android */
+}catch(e){}
+
+/* parar service android */
 if(window.Capacitor){
 
 try{
 
-const { Capacitor } = window;
+await Capacitor.Plugins.RotaSpeed.stopService();
 
-if(Capacitor.isNativePlatform()){
-
-window.location.href = "rotaspeed://stopgps";
+}catch(e){
+console.log(e);
+}
 
 }
 
-}catch(e){}
-
-}
-
+/* visual */
 setOfflineVisual();
 
 }
+
 /* ========================================================= */
 /* VISUAL ONLINE */
 /* ========================================================= */
