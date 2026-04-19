@@ -386,6 +386,11 @@ padding:16px;
 /* ========================================================= */
 /* VARIAVEIS LIMPAS */
 /* ========================================================= */
+/* ========================================================= */
+/* SUBSTITUA SOMENTE O <script> DO INDEX MOTOBOY POR ESTE    */
+/* MANTÉM O PAINEL IGUAL / REMOVE GPS WEB / USA SERVICE      */
+/* ========================================================= */
+
 const API = "https://zeus-delivery.onrender.com";
 
 let mapa = null;
@@ -398,31 +403,137 @@ let ultimaLng = -49.3758;
 
 let wakeLock = null;
 
-
 /* ========================================================= */
-/* 🔋 TELA LIGADA */
+/* TELA */
 /* ========================================================= */
 async function ativarTelaLigada(){
-
 try{
 if('wakeLock' in navigator){
 wakeLock = await navigator.wakeLock.request('screen');
 }
 }catch(e){}
-
 }
 
 async function soltarTelaLigada(){
-
 try{
 if(wakeLock){
 await wakeLock.release();
 wakeLock = null;
 }
 }catch(e){}
+}
+
+/* ========================================================= */
+/* LOAD */
+/* ========================================================= */
+window.onload = ()=>{
+
+setTimeout(()=>{
+document.getElementById("loading").style.display="none";
+},2200);
+
+const salvo = localStorage.getItem("motoboy_id");
+
+if(salvo){
+document.getElementById("id").value = salvo;
+}
+
+const logado = localStorage.getItem("motoboy_logado");
+
+if(logado === "sim" && salvo){
+
+userId = salvo;
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("painel").style.display="block";
+
+iniciarMapa();
+setOfflineVisual();
 
 }
 
+};
+
+/* ========================================================= */
+/* LOGIN */
+/* ========================================================= */
+async function login(){
+
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
+
+if(!id || !senha){
+alert("Preencha tudo");
+return;
+}
+
+try{
+
+const res = await fetch(API + '/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id,senha})
+});
+
+const data = await res.json();
+
+if(data.error){
+alert(data.error);
+return;
+}
+
+localStorage.setItem("motoboy_id",id);
+localStorage.setItem("motoboy_logado","sim");
+
+userId = id;
+
+document.getElementById("loginBox").style.display="none";
+document.getElementById("painel").style.display="block";
+
+iniciarMapa();
+setOfflineVisual();
+
+}catch(e){
+alert("Erro login");
+}
+
+}
+
+/* ========================================================= */
+/* CADASTRO */
+/* ========================================================= */
+async function register(){
+
+const id = document.getElementById("id").value.trim();
+const senha = document.getElementById("senha").value.trim();
+
+if(!id || !senha){
+alert("Preencha tudo");
+return;
+}
+
+try{
+
+const res = await fetch(API + '/register',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id,senha})
+});
+
+const data = await res.json();
+
+if(data.error){
+alert(data.error);
+return;
+}
+
+alert("Conta criada com sucesso 🚀");
+
+}catch(e){
+alert("Erro cadastro");
+}
+
+}
 
 /* ========================================================= */
 /* MAPA */
@@ -442,34 +553,23 @@ marker = L.marker([ultimaLat,ultimaLng]).addTo(mapa);
 
 }
 
-
 /* ========================================================= */
-/* MOVER MAPA */
+/* CENTRALIZAR */
 /* ========================================================= */
-function atualizarMapa(lat,lng){
+function centralizar(){
 
-ultimaLat = lat;
-ultimaLng = lng;
-
-if(marker){
-marker.setLatLng([lat,lng]);
-}
-
-if(mapa){
-mapa.setView([lat,lng],18);
+if(marker && mapa){
+mapa.setView(marker.getLatLng(),18);
 }
 
 }
 
-
 /* ========================================================= */
-/* ONLINE OFFLINE LIMPO */
+/* ONLINE / OFFLINE */
 /* ========================================================= */
 async function ficarLivre(){
 
-/* =========================
-🟢 ONLINE
-========================= */
+/* ONLINE */
 if(!online){
 
 online = true;
@@ -478,22 +578,23 @@ setOnlineVisual();
 
 await ativarTelaLigada();
 
-/* inicia service android */
+document.getElementById("status").innerHTML =
+"🟢 Iniciando rastreamento...";
+
 if(window.Capacitor){
 
 try{
 
-const pluginOk =
+if(
 Capacitor.Plugins &&
 Capacitor.Plugins.RotaSpeed &&
-typeof Capacitor.Plugins.RotaSpeed.startService === "function";
-
-if(pluginOk){
+typeof Capacitor.Plugins.RotaSpeed.startService === "function"
+){
 
 await Capacitor.Plugins.RotaSpeed.startService();
 
 document.getElementById("status").innerHTML =
-"🟢 Online - Rastreamento ativo";
+"🟢 Online";
 
 }else{
 
@@ -516,35 +617,28 @@ console.log(e);
 return;
 }
 
-/* =========================
-🔴 OFFLINE
-========================= */
+/* OFFLINE */
 online = false;
 
 await soltarTelaLigada();
 
 try{
-
 await fetch(API + '/offline',{
 method:'POST',
 headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-id:userId
-})
+body:JSON.stringify({id:userId})
 });
-
 }catch(e){}
 
 if(window.Capacitor){
 
 try{
 
-const pluginOk =
+if(
 Capacitor.Plugins &&
 Capacitor.Plugins.RotaSpeed &&
-typeof Capacitor.Plugins.RotaSpeed.stopService === "function";
-
-if(pluginOk){
+typeof Capacitor.Plugins.RotaSpeed.stopService === "function"
+){
 await Capacitor.Plugins.RotaSpeed.stopService();
 }
 
@@ -557,7 +651,6 @@ console.log(e);
 setOfflineVisual();
 
 }
-
 
 /* ========================================================= */
 /* VISUAL */
@@ -585,19 +678,6 @@ document.getElementById("status").innerHTML =
 
 }
 
-
-/* ========================================================= */
-/* CENTRALIZAR */
-/* ========================================================= */
-function centralizar(){
-
-if(marker && mapa){
-mapa.setView(marker.getLatLng(),18);
-}
-
-}
-
-
 /* ========================================================= */
 /* MENU */
 /* ========================================================= */
@@ -608,13 +688,14 @@ document.getElementById("menuLateral")
 
 async function desligar(){
 
+if(online){
 await ficarLivre();
+}
 
 document.getElementById("menuLateral")
 .classList.remove("ativo");
 
 }
-
 
 /* ========================================================= */
 /* INTERNET */
@@ -629,14 +710,11 @@ document.getElementById("status").innerHTML =
 window.addEventListener("online",()=>{
 
 if(online){
-
 document.getElementById("status").innerHTML =
 "📡 Reconectado";
-
 }
 
 });
-
 
 /* ========================================================= */
 /* FRASES */
@@ -666,7 +744,7 @@ frasesMoto[fraseIndexMoto];
 },4000);
 
 /* ========================================================= */
-/* 📱 PWA SERVICE WORKER */
+/* PWA */
 /* ========================================================= */
 if('serviceWorker' in navigator){
 
@@ -675,7 +753,6 @@ navigator.serviceWorker.register('/motoboy/sw.js')
 .catch(()=>console.log("Erro PWA"));
 
 }
-
 
 </script>
 </body>
