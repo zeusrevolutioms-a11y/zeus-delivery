@@ -639,26 +639,41 @@ if(!online){
 
 online = true;
 
-/* mantém tela ligada */
-await ativarTelaLigada();
-
 /* visual */
 setOnlineVisual();
 
-/* inicia gps */
-startGPS();
+/* tela ligada opcional */
+await ativarTelaLigada();
 
-/* mantém sistema antigo que funcionava */
+/* inicia JS fallback */
+startGPS();
 enviarLocal(ultimaLat,ultimaLng);
+
+/* inicia serviço Android real */
+if(window.Capacitor){
+
+try{
+
+const { Capacitor } = window;
+
+if(Capacitor.isNativePlatform()){
+
+window.location.href = "rotaspeed://startgps";
+
+}
+
+}catch(e){}
+
+}
 
 return;
 }
 
 /* OFFLINE */
+
 online = false;
 gpsIniciado = false;
 
-/* libera tela */
 await soltarTelaLigada();
 
 if(watchId){
@@ -677,10 +692,26 @@ headers:{'Content-Type':'application/json'},
 body:JSON.stringify({id:userId})
 });
 
-setOfflineVisual();
+/* parar serviço Android */
+if(window.Capacitor){
+
+try{
+
+const { Capacitor } = window;
+
+if(Capacitor.isNativePlatform()){
+
+window.location.href = "rotaspeed://stopgps";
 
 }
 
+}catch(e){}
+
+}
+
+setOfflineVisual();
+
+}
 /* ========================================================= */
 /* VISUAL ONLINE */
 /* ========================================================= */
