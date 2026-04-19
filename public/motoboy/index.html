@@ -384,164 +384,45 @@ padding:16px;
 <script>
 
 /* ========================================================= */
-/* VARIAVEIS */
+/* VARIAVEIS LIMPAS */
 /* ========================================================= */
 const API = "https://zeus-delivery.onrender.com";
 
-let watchId = null;
-let gpsLoop = null;
 let mapa = null;
 let marker = null;
 let userId = "";
 let online = false;
 
-let gpsIniciado = false;
 let ultimaLat = -20.8113;
 let ultimaLng = -49.3758;
 
-/* ========================================================= */
-/* 🔋 SISTEMA MOBILE */
-/* ========================================================= */
 let wakeLock = null;
-let ultimoLogin = 0;
-
 
 
 /* ========================================================= */
-/* 🔋 MANTER TELA LIGADA */
+/* 🔋 TELA LIGADA */
 /* ========================================================= */
 async function ativarTelaLigada(){
 
 try{
-
 if('wakeLock' in navigator){
 wakeLock = await navigator.wakeLock.request('screen');
 }
-
 }catch(e){}
 
 }
 
-/* ========================================================= */
-/* 🔋 LIBERAR TELA */
-/* ========================================================= */
 async function soltarTelaLigada(){
 
 try{
-
 if(wakeLock){
 await wakeLock.release();
 wakeLock = null;
 }
-
 }catch(e){}
 
 }
 
-/* ========================================================= */
-/* LOADING */
-/* ========================================================= */
-window.onload = ()=>{
-
-setTimeout(()=>{
-document.getElementById("loading").style.display="none";
-},2200);
-
-const salvo = localStorage.getItem("motoboy_id");
-
-if(salvo){
-document.getElementById("id").value = salvo;
-}
-
-
-const logado = localStorage.getItem("motoboy_logado");
-
-if(logado == "sim" && salvo){
-
-userId = salvo;
-
-document.getElementById("loginBox").style.display="none";
-document.getElementById("painel").style.display="block";
-
-iniciarMapa();
-setOfflineVisual();
-
-}
-
-};
-
-/* ========================================================= */
-/* LOGIN */
-/* ========================================================= */
-async function login(){
-
-const id = document.getElementById("id").value.trim();
-const senha = document.getElementById("senha").value.trim();
-
-if(!id || !senha){
-alert("Preencha tudo");
-return;
-}
-
-const res = await fetch(API + '/login',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id,senha})
-});
-
-const data = await res.json();
-
-if(data.error){
-alert(data.error);
-return;
-}
-
-localStorage.setItem("motoboy_id",id);
-localStorage.setItem("motoboy_logado","sim");
-
-userId = id;
-
-/* abre painel */
-document.getElementById("loginBox").style.display="none";
-document.getElementById("painel").style.display="block";
-
-/* inicia mapa */
-iniciarMapa();
-
-/* começa offline */
-setOfflineVisual();
-
-}
-
-/* ========================================================= */
-/* CADASTRO */
-/* ========================================================= */
-async function register(){
-
-const id = document.getElementById("id").value.trim();
-const senha = document.getElementById("senha").value.trim();
-
-if(!id || !senha){
-alert("Preencha tudo");
-return;
-}
-
-const res = await fetch(API + '/register',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id,senha})
-});
-
-const data = await res.json();
-
-if(data.error){
-alert(data.error);
-return;
-}
-
-alert("Conta criada com sucesso 🚀");
-
-}
 
 /* ========================================================= */
 /* MAPA */
@@ -550,62 +431,25 @@ function iniciarMapa(){
 
 if(mapa) return;
 
-mapa = L.map('map').setView([-20.8113,-49.3758],15);
+mapa = L.map('map').setView([ultimaLat,ultimaLng],15);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(mapa);
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{ maxZoom:19 }
+).addTo(mapa);
 
-marker = L.marker([-20.8113,-49.3758]).addTo(mapa);
-
-}
-
-
-/* ========================================================= */
-/* 📍 GPS FORTE ANDROID / APK */
-/* ========================================================= */
-async function startGPS(){
-
-if(gpsIniciado) return;
-gpsIniciado = true;
-
-watchId = navigator.geolocation.watchPosition((pos)=>{
-
-ultimaLat = pos.coords.latitude;
-ultimaLng = pos.coords.longitude;
-
-enviarLocal(ultimaLat,ultimaLng);
-
-},()=>{
-
-document.getElementById("status").innerHTML =
-"⚠️ GPS indisponível";
-
-},{
-enableHighAccuracy:true,
-maximumAge:5000,
-timeout:10000
-});
-
-/* heartbeat */
-if(gpsLoop) clearInterval(gpsLoop);
-
-gpsLoop = setInterval(()=>{
-
-if(!online) return;
-
-enviarLocal(ultimaLat,ultimaLng);
-
-},15000);
+marker = L.marker([ultimaLat,ultimaLng]).addTo(mapa);
 
 }
 
 
+/* ========================================================= */
+/* MOVER MAPA */
+/* ========================================================= */
+function atualizarMapa(lat,lng){
 
-/* ========================================================= */
-/* ENVIAR LOCAL */
-/* ========================================================= */
-function enviarLocal(lat,lng){
+ultimaLat = lat;
+ultimaLng = lng;
 
 if(marker){
 marker.setLatLng([lat,lng]);
@@ -615,46 +459,26 @@ if(mapa){
 mapa.setView([lat,lng],18);
 }
 
-fetch(API + '/location',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-id:userId,
-lat:lat,
-lng:lng
-})
-});
-
-document.getElementById("status").innerHTML =
-"🟢 Online - Enviando localização";
-
 }
 
+
 /* ========================================================= */
-/* BOTAO ONLINE OFFLINE */
+/* ONLINE OFFLINE LIMPO */
 /* ========================================================= */
 async function ficarLivre(){
 
 /* =========================
-🟢 FICAR ONLINE
+🟢 ONLINE
 ========================= */
 if(!online){
 
 online = true;
 
-/* visual */
 setOnlineVisual();
 
-/* manter tela ligada */
 await ativarTelaLigada();
 
-/* iniciar gps web */
-startGPS();
-
-/* enviar ponto inicial */
-enviarLocal(ultimaLat, ultimaLng);
-
-/* plugin android protegido */
+/* inicia service android */
 if(window.Capacitor){
 
 try{
@@ -668,17 +492,22 @@ if(pluginOk){
 
 await Capacitor.Plugins.RotaSpeed.startService();
 
-console.log("Service iniciado");
+document.getElementById("status").innerHTML =
+"🟢 Online - Rastreamento ativo";
 
 }else{
 
-console.log("Plugin RotaSpeed não encontrado");
+document.getElementById("status").innerHTML =
+"⚠️ Plugin não encontrado";
 
 }
 
 }catch(e){
 
-console.log("Erro startService:", e);
+document.getElementById("status").innerHTML =
+"❌ Falha ao iniciar";
+
+console.log(e);
 
 }
 
@@ -688,27 +517,12 @@ return;
 }
 
 /* =========================
-🔴 FICAR OFFLINE
+🔴 OFFLINE
 ========================= */
 online = false;
-gpsIniciado = false;
 
-/* liberar tela */
 await soltarTelaLigada();
 
-/* parar gps navegador */
-if(watchId){
-navigator.geolocation.clearWatch(watchId);
-watchId = null;
-}
-
-/* parar loop */
-if(gpsLoop){
-clearInterval(gpsLoop);
-gpsLoop = null;
-}
-
-/* avisar servidor */
 try{
 
 await fetch(API + '/offline',{
@@ -719,11 +533,8 @@ id:userId
 })
 });
 
-}catch(e){
-console.log(e);
-}
+}catch(e){}
 
-/* parar plugin android protegido */
 if(window.Capacitor){
 
 try{
@@ -734,48 +545,46 @@ Capacitor.Plugins.RotaSpeed &&
 typeof Capacitor.Plugins.RotaSpeed.stopService === "function";
 
 if(pluginOk){
-
 await Capacitor.Plugins.RotaSpeed.stopService();
-
-console.log("Service parado");
-
 }
 
 }catch(e){
-
-console.log("Erro stopService:", e);
-
+console.log(e);
 }
 
 }
 
-/* visual */
 setOfflineVisual();
 
 }
 
+
 /* ========================================================= */
-/* VISUAL ONLINE */
+/* VISUAL */
 /* ========================================================= */
 function setOnlineVisual(){
 
-document.getElementById("btnLivre").innerHTML = "🟢 Online";
-document.getElementById("btnLivre").style.background = "#16a34a";
+document.getElementById("btnLivre").innerHTML =
+"🟢 Online";
+
+document.getElementById("btnLivre").style.background =
+"#16a34a";
 
 }
 
-/* ========================================================= */
-/* VISUAL OFFLINE */
-/* ========================================================= */
 function setOfflineVisual(){
 
-document.getElementById("btnLivre").innerHTML = "🔴 Offline";
-document.getElementById("btnLivre").style.background = "#ef4444";
+document.getElementById("btnLivre").innerHTML =
+"🔴 Offline";
+
+document.getElementById("btnLivre").style.background =
+"#ef4444";
 
 document.getElementById("status").innerHTML =
 "🔴 Offline";
 
 }
+
 
 /* ========================================================= */
 /* CENTRALIZAR */
@@ -788,18 +597,15 @@ mapa.setView(marker.getLatLng(),18);
 
 }
 
+
 /* ========================================================= */
 /* MENU */
 /* ========================================================= */
 function abrirMenu(){
-
-document.getElementById("menuLateral").classList.toggle("ativo");
-
+document.getElementById("menuLateral")
+.classList.toggle("ativo");
 }
 
-/* ========================================================= */
-/* SAIR SERVIÇO */
-/* ========================================================= */
 async function desligar(){
 
 await ficarLivre();
@@ -811,25 +617,7 @@ document.getElementById("menuLateral")
 
 
 /* ========================================================= */
-/* 📱 VOLTOU PRA TELA */
-/* ========================================================= */
-document.addEventListener("visibilitychange", async()=>{
-
-if(!document.hidden && online){
-
-await ativarTelaLigada();
-
-gpsIniciado = false;
-startGPS();
-
-enviarLocal(ultimaLat,ultimaLng);
-
-}
-
-});
-
-/* ========================================================= */
-/* 🌐 INTERNET OFF */
+/* INTERNET */
 /* ========================================================= */
 window.addEventListener("offline",()=>{
 
@@ -838,19 +626,12 @@ document.getElementById("status").innerHTML =
 
 });
 
-/* ========================================================= */
-/* 🌐 INTERNET VOLTOU */
-/* ========================================================= */
 window.addEventListener("online",()=>{
-
-document.getElementById("status").innerHTML =
-"📡 Internet reconectada";
 
 if(online){
 
-gpsIniciado = false;
-startGPS();
-enviarLocal(ultimaLat,ultimaLng);
+document.getElementById("status").innerHTML =
+"📡 Reconectado";
 
 }
 
