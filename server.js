@@ -147,30 +147,36 @@ res.send({status:"ok"});
 });
 
 // =========================================================
-// 📡 LISTAR
+// 📡 LISTAR MOTOBOYS REAL
 // =========================================================
 app.get('/motoboys', async(req,res)=>{
 
-/* 15 segundos sem atualizar = offline */
-const limite = Date.now() - 45000;
+const agora = Date.now();
+
+/* tolerância real */
+const limite = agora - 90000;
 
 const [rows] = await db.query(`
-SELECT *,
-CASE
-WHEN updated < ? THEN 0
-ELSE online
-END AS online_real
+SELECT id,lat,lng,online,updated
 FROM motoboys
-`,[limite]);
+`);
 
 let resposta = {};
 
 rows.forEach(m=>{
 
+let ativo = false;
+
+/* só fica offline se desligou manual
+ou sumiu muito tempo */
+if(m.online == 1 && m.updated >= limite){
+ativo = true;
+}
+
 resposta[m.id] = {
-lat:m.lat,
-lng:m.lng,
-online:m.online_real == 1
+lat: Number(m.lat),
+lng: Number(m.lng),
+online: ativo
 };
 
 });
