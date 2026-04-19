@@ -152,7 +152,7 @@ res.send({status:"ok"});
 app.get('/motoboys', async(req,res)=>{
 
 /* 15 segundos sem atualizar = offline */
-const limite = Date.now() - 15000;
+const limite = Date.now() - 45000;
 
 const [rows] = await db.query(`
 SELECT *,
