@@ -433,12 +433,10 @@ document.getElementById("loading").style.display="none";
 },2200);
 
 const salvo = localStorage.getItem("motoboy_id");
-
-if(salvo){
-document.getElementById("id").value = salvo;
-}
-
 const logado = localStorage.getItem("motoboy_logado");
+const onlineSalvo = localStorage.getItem("motoboy_online");
+
+if(salvo) document.getElementById("id").value = salvo;
 
 if(logado === "sim" && salvo){
 
@@ -448,11 +446,16 @@ document.getElementById("loginBox").style.display="none";
 document.getElementById("painel").style.display="block";
 
 iniciarMapa();
-setOfflineVisual();
 
+if(onlineSalvo === "sim"){
+online = true;
+setOnlineVisual();
+}else{
+setOfflineVisual();
 }
 
-};
+}
+}
 
 /* ========================================================= */
 /* LOGIN */
@@ -569,56 +572,26 @@ mapa.setView(marker.getLatLng(),18);
 /* ========================================================= */
 async function ficarLivre(){
 
-/* ONLINE */
 if(!online){
 
 online = true;
+localStorage.setItem("motoboy_online","sim");
 
 setOnlineVisual();
 
 await ativarTelaLigada();
 
-document.getElementById("status").innerHTML =
-"🟢 Iniciando rastreamento...";
-
-if(window.Capacitor){
-
 try{
-
-if(
-Capacitor.Plugins &&
-Capacitor.Plugins.RotaSpeed &&
-typeof Capacitor.Plugins.RotaSpeed.startService === "function"
-){
-
+if(window.Capacitor?.Plugins?.RotaSpeed){
 await Capacitor.Plugins.RotaSpeed.startService();
-
-document.getElementById("status").innerHTML =
-"🟢 Online";
-
-}else{
-
-document.getElementById("status").innerHTML =
-"⚠️ Plugin não encontrado";
-
 }
-
-}catch(e){
-
-document.getElementById("status").innerHTML =
-"❌ Falha ao iniciar";
-
-console.log(e);
-
-}
-
-}
+}catch(e){}
 
 return;
 }
 
-/* OFFLINE */
 online = false;
+localStorage.setItem("motoboy_online","nao");
 
 await soltarTelaLigada();
 
@@ -630,26 +603,13 @@ body:JSON.stringify({id:userId})
 });
 }catch(e){}
 
-if(window.Capacitor){
-
 try{
-
-if(
-Capacitor.Plugins &&
-Capacitor.Plugins.RotaSpeed &&
-typeof Capacitor.Plugins.RotaSpeed.stopService === "function"
-){
+if(window.Capacitor?.Plugins?.RotaSpeed){
 await Capacitor.Plugins.RotaSpeed.stopService();
 }
-
-}catch(e){
-console.log(e);
-}
-
-}
+}catch(e){}
 
 setOfflineVisual();
-
 }
 
 /* ========================================================= */
